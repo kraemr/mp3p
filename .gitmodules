@@ -1,3 +1,6 @@
 [submodule "include/cpp-httplib"]
 	path = include/cpp-httplib
 	url = https://github.com/yhirose/cpp-httplib
+[submodule "include/imgui"]
+	path = include/imgui
+	url = https://github.com/ocornut/imgui/

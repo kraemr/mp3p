@@ -4,8 +4,9 @@ With some cool examples and a fully functional mp3player with Opengl Shader visu
 
 # Building and Setup
 Install make on your system
-
 ```bash
+git clone --recurse-submodules https://github.com/kraemr/mp3p
+cd mp3p
 make
 ```
 ## Linux

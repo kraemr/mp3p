@@ -1,0 +1,6 @@
+#!/bin/bash
+#make clean
+make -j8 > /dev/null
+ls -lh LibreMusic.out
+strip LibreMusic.out
+ls -lh LibreMusic.out

@@ -1,0 +1,10 @@
+- run shader in background window
+- Edit Playlist / New Playlist -> Add images in frontend,set Description Name ...
+- Api to control songs and playlist like how spotify works
+- enable/disable caching in settings
+- skip to specified Second
+- error handling for state.json and settings.json
+- Implement LRU-Cache for Memory-Management Caching
+- implement Cache flushing
+- Playlists save in JSON DB like Mongo-DB or DuckDB?
+- Refactor Code and clean stuff up

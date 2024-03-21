@@ -1,6 +1,5 @@
 # Cppmp3
-A Simple mp3player api for C++ with basic json playlists and configuration.
-With some cool examples and a fully functional mp3player with Opengl Shader visualization.
+A Simple mp3-player written in C++ with basic json playlists and configuration.
 
 # Building and Setup
 Install make on your system

@@ -31,12 +31,13 @@ int loadDifferentPlaylist(std::string filepath);
 int changeAudioDevice(int id);
 int changeAudioDevice(std::string device_name);
 void fallbackAudioDevice();
-
 int removeSong(long unsigned int id);
 int removePlaylist(int id);
 int decodeSongsPlaylist(Playlist* playlist);
 void adjustVolumeInSteps(bool vol_down,float step);
 bool songIsInPlaylist(Playlist * playlist,std::string song_name);
+int refreshAudioDevices();
+
 
 extern Song* currentSong;
 extern int signal;

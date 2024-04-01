@@ -77,6 +77,7 @@ u32 playbackDeviceCount;
 u32 iAvailableDevice;
 ma_resource_manager_config resourceManagerConfig;
 ma_resource_manager resourceManager;
+
 //####################################
 volatile bool isInitialized=false;
 volatile bool playlistLoaded=false;
@@ -90,6 +91,9 @@ bool songLoaded=false;
 std::vector<Playlist> playlistsVec;
 Playlist* currentPlaylist=nullptr;
 bool paused=true;
+u64 framesRead=0;
+
+
 
 void resetSeconds(){
     current_seconds = 0;
@@ -130,10 +134,6 @@ u64 getDurationOfSong(Song song){
     return res;
 }
 
-void loadSettings(){
-    
-}
-
 std::string getPlaylistName(){
     if(currentPlaylist == nullptr){
         return "none";
@@ -144,9 +144,6 @@ std::string getPlaylistName(){
     return currentPlaylist->name;
 }
 
-u64 framesRead=0;
-u64 totalFramesRead=0;
-#include<stdio.h>
 void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
 {
     if(!songLoaded || paused){
@@ -169,18 +166,75 @@ void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uin
             }
         }
     }
-
     (void)pInput;
     ma_engine_read_pcm_frames((ma_engine*)pDevice->pUserData, pOutput, frameCount,&framesRead);
+    
+    /*
+    calculate the magnitude of sound here, for audio visualization.
+    */
+
+
     current_seconds = (u64)(ma_engine_get_time_in_milliseconds(&engines[current_device_index]) / 1000);
 }
 
-// Apparently there is an endcallback ??
-// Maybe we can use that to go to next song
+/*
+use ma_context_get_devices on a temp context and pPlaybackDeviceInfos
+Then determine which devices are missing from the list and add them
+
+typedef enum
+{
+    ma_device_state_uninitialized = 0,
+    ma_device_state_stopped       = 1,   The device's default state after initialization. 
+    ma_device_state_started       = 2,   The device is started and is requesting and/or delivering audio data. 
+    ma_device_state_starting      = 3,   Transitioning from a stopped state to started. 
+    ma_device_state_stopping      = 4    Transitioning from a started state to stopped. 
+} ma_device_state;
+MA_ATOMIC_SAFE_TYPE_DECL(i32, 4, device_state)
+*/
+
+i32 refreshAudioDevices(){
+    ma_device_info* tmp_playback_dev_info;
+    ma_context tmp_context;
+    u32 tmp_playback_dev_count;
+    result = ma_context_get_devices(&context, &pPlaybackDeviceInfos, &playbackDeviceCount, NULL, NULL);
 
 
+    if (result != MA_SUCCESS) {
+        std::cerr << "Failed to enumerate playback devices." << std::endl;
+        ma_context_uninit(&context);
+        return -1;
+    }
+  
 
-// RESEARCH IT in the Docs
+    for(int i = 0; i< playbackDeviceCount;i++){
+        deviceConfig = ma_device_config_init(ma_device_type_playback);
+        deviceConfig.playback.pDeviceID = &pPlaybackDeviceInfos[i].id;
+        deviceConfig.playback.format   = SAMPLE_FORMAT;
+        deviceConfig.playback.channels = 2;
+        deviceConfig.sampleRate        = SAMPLE_RATE;
+        deviceConfig.dataCallback      = data_callback;
+        deviceConfig.pUserData         = &engines[0];
+        
+        //dev started
+        if(devices[i].state.value == 2){
+            
+        }
+
+        //dev uninitialized
+        if(devices[i].state.value == 0){
+            context = tmp_context;
+            std::cout << "found uninitialized device: " ;
+            result = ma_device_init(&context, &deviceConfig,&devices[i]);
+            if (result != MA_SUCCESS) {
+                std::cerr << "Failed to initialize Device" << std::endl;
+                return -1;
+            }
+        }
+    }
+    
+    return 0;
+}
+
 i32 changeAudioDevice(int id){
     ma_engine_uninit(&engines[0]);
     engineConfig = ma_engine_config_init();
@@ -201,6 +255,7 @@ i32 changeAudioDevice(int id){
 
 
 bool cmpDeviceStr(char * deviceNameBuffer,char * device_name,int nbytes){
+    // buffer overflow mitigation, playbackdeviceinfos[i].name is 256 bytes
     if(nbytes > 256){
         return false;
     }
@@ -214,13 +269,16 @@ bool cmpDeviceStr(char * deviceNameBuffer,char * device_name,int nbytes){
 }
 
 i32 changeAudioDevice (std::string device_name){
-    int id=-1;
+    // -1 means invalid
+    int id = -1;    
     for(i32 i = 0; i < playbackDeviceCount;i++ ){
         bool device_found = cmpDeviceStr(pPlaybackDeviceInfos[i].name,(char*)device_name.c_str(),device_name.size());
+
         if(device_found){
             id = i;
-            break;
+            break; 
         }
+
     }
     return changeAudioDevice(id);
 }

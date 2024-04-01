@@ -14,6 +14,10 @@ namespace AppSettingsManager{
         data["device_name"] = "None";
         data["should_recurse_subdirs"] = false;
         data["debug"] = false; 
+        
+        data["userdata_directory_path"] = "";
+        data["playlist_directory_path"] = "";
+
         std::string jsonStr = data.dump();
         std::ofstream outputFile(abs_settings_json_path);
 	    if (outputFile.is_open()) {
@@ -36,6 +40,8 @@ namespace AppSettingsManager{
             pAppSettings->should_recurse_subdirs = data["should_recurse_subdirs"];
             pAppSettings->debug = data["debug"];
             pAppSettings->caching = data["caching"];
+            pAppSettings->userdata_directory_path = data["userdata_directory_path"];
+
         }
         catch (const json::exception& e){
             std::cerr << "reloadAppSettings failed: " << abs_settings_json_path << std::endl;
@@ -48,6 +54,8 @@ namespace AppSettingsManager{
     int saveChangedSettings(std::string abs_settings_json_path,AppSettings* pAppSettings){
         json data;
         data["playlist_directory_path"] = pAppSettings->playlist_directory_path;
+        data["userdata_directory_path"] = pAppSettings->userdata_directory_path;
+
         data["deviceid"] = pAppSettings->deviceid;
         data["device_name"] = pAppSettings->device_name;
         data["should_recurse_subdirs"] = pAppSettings->should_recurse_subdirs;

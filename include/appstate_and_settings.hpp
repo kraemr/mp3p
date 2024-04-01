@@ -12,6 +12,7 @@ struct AppSettings{
     bool caching; //Enabled by default, Significantly speeds up load-times for playlists, by caching durations and images up to a certain point
     unsigned int MaxcacheMemory; // This tells the program at what point something needs to be removed from the cache
     bool debug;
+    std::string userdata_directory_path;
 };
 
 struct ApplicationState{

@@ -79,9 +79,6 @@ ApplicationState* getAppStatePointer(){
     return (ApplicationState*)(&app_state);
 }
 
-
-
-
 int loadTheme(std::string path){
     //Load Json file here with Paths to the images
     //Later also enable editing of Imgui Theme through the json
@@ -106,6 +103,9 @@ inline bool checkMouseMoved(){
 }
 
 int run(std::string userdata_dir,std::string playlists_dir){
+    app_settings.userdata_directory_path = userdata_dir;
+    app_settings.playlist_directory_path = playlists_dir;
+
     int ret = AppSettingsManager::reloadSettings(userdata_dir+"settings.json",&app_settings);
     if(ret == -2){
         std::cerr << "reloadSettings Failed ?" << std::endl;
@@ -139,6 +139,7 @@ int run(std::string userdata_dir,std::string playlists_dir){
         // A workaround would be to set ms_to_sleep:
         // std::this_thread::sleep_for(std::chrono::milliseconds(ms_to_sleep)); 
         /*
+
         if user hasnt moved mouse or OS Window lost focus, then increase ms_to_sleep
         This could be done gradually or hardcoded.
         hardcoded is probably better.
@@ -185,6 +186,7 @@ int run(std::string userdata_dir,std::string playlists_dir){
         glfwSwapBuffers(Mp3Gui::window);
     }
     Mp3Gui::cleanup();
-    AppStateManager::saveChangedState("/home/rob/repos/Cppmp3/userdata/state.json",&app_state);
+    AppStateManager::saveChangedState(userdata_dir + "state.json",&app_state);
+    AppSettingsManager::saveChangedSettings(userdata_dir + "settings.json", &app_settings);
     return 0;
 }

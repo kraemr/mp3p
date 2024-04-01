@@ -20,14 +20,14 @@ int main(int argc,char ** argv){
         if(userdata_dir == NULL){
           userdata_dir = "";
           std::cerr << "ERROR you need to set CPPMP3_USERDATA in your environment or the registry in windows" << std::endl;
-          return 1;
+   //       return 1;
         }
         if(playlist_dir == NULL){
           playlist_dir = "";
           std::cerr << "ERROR you need to set CPPMP3_PLAYLISTS in your environment or the registry in windows" << std::endl;
-          return 1;
+     //     return 1;
         }
-        run(userdata_dir,playlist_dir);  
+        run("/home/rob/repos/mp3p/userdata/","/home/rob/repos/mp3p/playlists/");  
     }
     
     if(start_server){

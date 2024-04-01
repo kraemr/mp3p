@@ -11,6 +11,7 @@ namespace Mp3Gui{
     ImGuiIO* io;
     int windowWidth=1280;
     int windowHeight=720;
+
     stb_IMAGE playButton_img;
     stb_IMAGE pauseButton_img;
     stb_IMAGE prevButton_img;
@@ -177,7 +178,7 @@ void HandleDropEvent(int count, const char** paths) {
             }
         }
     }
-    else if(papp_state->show_new_playlist == false && papp_state->edit_playlist){
+    else if(papp_state->show_new_playlist == false && papp_state->edit_playlist == false){
         if(Mp3Player::currentPlaylist != nullptr){ // File Has To Be mp3
             for (int i = 0; i < count; ++i) {
                 const char* filePath = paths[i];
@@ -218,17 +219,23 @@ static void glfw_error_callback(int error, const char* description){
 void renderSettingsWindow(ApplicationState& app_state,AppSettings& app_settings){
     if(app_state.show_settings){
         ImGui::Begin("Settings",&app_state.show_settings);
-        ImGui::SetWindowSize({(float)windowWidth-float(windowWidth/4),(float)(windowHeight-(windowHeight/12))},0);
-      //  ImGui::Checkbox("Recurse Subdirectories When looking for mp3s",&app_settings.should_recurse_subdirs);
-      ImGui::Checkbox("Debug",&app_settings.debug);
+        ImGui::SetWindowSize({io->DisplaySize.x - (io->DisplaySize.x/4)
+        ,(float)(io->DisplaySize.y-(io->DisplaySize.y/12))},0);
+        ImGui::Checkbox("Debug",&app_settings.debug);
         ImGui::Checkbox("Cache Song Duration in Memory",&app_settings.caching);
+        
         if(ImGui::Button("Flush Cache")){
-            //flushCache();
+
         }
+
+        if(ImGui::Button("Refresh Devices")){
+            int res = Mp3Player::refreshAudioDevices();
+        }
+
         std::vector<std::string> devices = Mp3Player::getDeviceNames();
         for(long unsigned int i = 0; i < devices.size();i++){
             if(ImGui::Button(devices[i].c_str())){
-                int res = Mp3Player::changeAudioDevice(i);
+                int res = Mp3Player::changeAudioDevice(devices[i]);
                 if(res >= 0){
                     app_settings.device_name = Mp3Player::current_device_name;
                 }
@@ -278,11 +285,11 @@ void renderPlayer(ApplicationState& app_state,AppSettings& app_settings){
     ImGui::SetNextItemWidth(50);
     ImGui::SliderFloat("Volume", &Mp3Player::volume, 0.0f, 1.0f);
     if(app_state.volume != Mp3Player::volume){
-    (void)Mp3Player::setVolume(Mp3Player::volume);
+        (void)Mp3Player::setVolume(Mp3Player::volume);
     } 
     ImGui::SameLine();
     if(Mp3Player::currentSong != nullptr && !Mp3Player::currentSong->songname.empty()){
-            ImGui::Text("%s",Mp3Player::currentSong->songname.c_str()); 
+        ImGui::Text("%s",Mp3Player::currentSong->songname.c_str()); 
     }else{
         ImGui::Text("No Song Playing ...");
     }
@@ -298,11 +305,11 @@ void renderPlayer(ApplicationState& app_state,AppSettings& app_settings){
         Mp3Player::cleanupMp3Player();
         saveAllChangesToPlaylists();
         int res;
-        res=AppStateManager::saveChangedState("/home/rob/repos/Cppmp3/userdata/state.json",&app_state);
+        res=AppStateManager::saveChangedState(app_settings.userdata_directory_path + "state.json",&app_state);
         if(res < 0){
             std::cout << "error couldnt save State (saveChangedState)";
         }
-        res=AppSettingsManager::saveChangedSettings("/home/rob/repos/Cppmp3/userdata/settings.json", &app_settings);
+        res=AppSettingsManager::saveChangedSettings(app_settings.userdata_directory_path + "settings.json", &app_settings);
         if(res < 0){
             std::cout << "error couldnt save Settings (saveChangedSettings)";
         }
@@ -323,8 +330,11 @@ void renderDebug(ApplicationState& app_state,AppSettings& app_settings){
     ImGui::Text("%d %s",Mp3Player::current_device_index,deviceNames[Mp3Player::current_device_index].c_str());
     ma_device* dev = ma_engine_get_device(&Mp3Player::engines[Mp3Player::current_device_index]);
     ImGui::Text("current Device pointer: %llu",(long long unsigned int) dev);
-    ImGui::Text("Devices:");
+    
+    ImGui::Text("Playlist Path: %s",app_settings.playlist_directory_path.c_str());
+    ImGui::Text("Userdata Path: %s",app_settings.userdata_directory_path.c_str());
 
+    ImGui::Text("Devices:");
     for(unsigned int i = 0; i < Mp3Player::playbackDeviceCount;i++ ){
         ImGui::Text("%s %llu",Mp3Player::pPlaybackDeviceInfos[i].name,(long long unsigned int) &Mp3Player::devices[i]);
     }
@@ -353,7 +363,7 @@ void renderPlaylists(ApplicationState& app_state,AppSettings& app_settings){
         ImGui::SameLine();
         if(ImGui::Button(DbuttonStr.c_str())&& app_state.edit_playlist == false){
            Mp3Player::removePlaylist(i); 
-           AppStateManager::saveChangedState("/home/rob/repos/Cppmp3/userdata/state.json",&app_state);
+           AppStateManager::saveChangedState(app_settings.userdata_directory_path + "state.json",&app_state);
         }
     }
     ImGui::End();

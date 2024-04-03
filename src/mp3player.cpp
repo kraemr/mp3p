@@ -131,6 +131,7 @@ u64 getDurationOfSong(Song song){
     }
     u64 res = (duration / decoder.outputSampleRate);
     ma_decoder_uninit(&decoder);
+    std::cout << "getDurationOfSong: " << song.songname << "  Duration:  " << song.duration << std::endl;
     return res;
 }
 
@@ -547,6 +548,7 @@ i32 loadDifferentPlaylist(std::string filepath){
 
 i32 decodeSongsPlaylist(Playlist* playlist){
     if(playlist == nullptr){
+        std::cerr << "decodeSongsPlaylist: " <<  playlist->name << " Playlist was null"<<std::endl;
         return -1;
     }
     else if(playlist->songs.size() == 0){
@@ -554,12 +556,15 @@ i32 decodeSongsPlaylist(Playlist* playlist){
         return -1;
     }
     for(int i = 0; i < (int)playlist->songs.size();i++){
-        if(getCachedDuration(playlist->songs[i].filepath)){
+        if(getCachedDuration(playlist->songs[i].filepath) != 0 ){
             playlist->songs[i].duration = getCachedDuration(playlist->songs[i].filepath);
-            continue;
+            std::cout << "song: " << playlist->songs[i].songname << " was in cache" << std::endl;
+        }else{
+            playlist->songs[i].duration = getDurationOfSong(playlist->songs[i]);
+            setCachedDuration(playlist->songs[i].songname,playlist->songs[i].duration);
+            std::cout << "song: " << playlist->songs[i].songname << " was not in cache" << std::endl;
         }
-        playlist->songs[i].duration = getDurationOfSong(playlist->songs[i]);
-        setCachedDuration(playlist->songs[i].songname,playlist->songs[i].duration);
+
     }
     return 0;
 }

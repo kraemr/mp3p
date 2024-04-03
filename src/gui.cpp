@@ -9,6 +9,7 @@
 namespace Mp3Gui{
     GLFWwindow * window;
     ImGuiIO* io;
+
     int windowWidth=1280;
     int windowHeight=720;
 
@@ -36,7 +37,8 @@ namespace Mp3Gui{
     ImVec2 PlaylistImageSize = {(float)windowWidth/8,(float)windowWidth/8};;
     //This is the playlist getting created by new Playlist window
     Playlist created_playlist;
-
+    char name[256];
+    char description[4096];
 
 void updatePositionsAndSizes(){
     playlistPos = {(float)0,(float)0};;
@@ -224,14 +226,6 @@ void renderSettingsWindow(ApplicationState& app_state,AppSettings& app_settings)
         ImGui::Checkbox("Debug",&app_settings.debug);
         ImGui::Checkbox("Cache Song Duration in Memory",&app_settings.caching);
         
-        if(ImGui::Button("Flush Cache")){
-
-        }
-
-        if(ImGui::Button("Refresh Devices")){
-            int res = Mp3Player::refreshAudioDevices();
-        }
-
         std::vector<std::string> devices = Mp3Player::getDeviceNames();
         for(long unsigned int i = 0; i < devices.size();i++){
             if(ImGui::Button(devices[i].c_str())){
@@ -296,6 +290,7 @@ void renderPlayer(ApplicationState& app_state,AppSettings& app_settings){
     
     ImGui::SameLine();
     if(ImGui::Button("settings")){
+        int res = Mp3Player::refreshAudioDevices();
         app_state.show_settings = true;
     }
     ImGui::SameLine();
@@ -330,17 +325,15 @@ void renderDebug(ApplicationState& app_state,AppSettings& app_settings){
     ImGui::Text("%d %s",Mp3Player::current_device_index,deviceNames[Mp3Player::current_device_index].c_str());
     ma_device* dev = ma_engine_get_device(&Mp3Player::engines[Mp3Player::current_device_index]);
     ImGui::Text("current Device pointer: %llu",(long long unsigned int) dev);
-    
     ImGui::Text("Playlist Path: %s",app_settings.playlist_directory_path.c_str());
     ImGui::Text("Userdata Path: %s",app_settings.userdata_directory_path.c_str());
-
     ImGui::Text("Devices:");
+
     for(unsigned int i = 0; i < Mp3Player::playbackDeviceCount;i++ ){
         ImGui::Text("%s %llu",Mp3Player::pPlaybackDeviceInfos[i].name,(long long unsigned int) &Mp3Player::devices[i]);
     }
 
-    ImGui::End();
- 
+    ImGui::End(); 
 }
 
 void renderPlaylists(ApplicationState& app_state,AppSettings& app_settings){
@@ -359,6 +352,8 @@ void renderPlaylists(ApplicationState& app_state,AppSettings& app_settings){
         if( ImGui::Button(pstr.c_str() ) && app_state.edit_playlist == false){
             Mp3Player::loadDifferentPlaylist(i);
             LoadTextureFromFile(Mp3Player::currentPlaylist->image_path.c_str(),&currentPlaylist_image);//Eh this should work
+            Mp3Player::decodeSongsPlaylist(Mp3Player::currentPlaylist);
+
         }
         ImGui::SameLine();
         if(ImGui::Button(DbuttonStr.c_str())&& app_state.edit_playlist == false){
@@ -374,7 +369,6 @@ void ClickableTableRow(const char* label, bool* selected,short* mouse_click) {
     if (ImGui::Selectable(label, *selected)) {
         *selected = !(*selected); // Toggle selection
     }
-
     if (ImGui::IsItemHovered())
     {
         if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
@@ -388,8 +382,7 @@ void ClickableTableRow(const char* label, bool* selected,short* mouse_click) {
     }
 }
 
-char name[256];
-char description[4096];
+
 void renderEditPlaylist(ApplicationState& app_state,AppSettings& app_settings){
     if(app_state.edit_playlist){
         ImGui::SetNextWindowSize({SongsSize.x /2,SongsSize.y/2},0);
@@ -459,11 +452,6 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
             else {
                 std::cout << "remove: " << i << std::endl;
                 Mp3Player::removeSong(i);
-                //res=Mp3Player::playSongAtIndex(i);
-                //if(res < 0){
-                //    std::cout << "couldnt play Song at" << i << std::endl;
-                //}
-                //Mp3Player::startMusic();
             }
             
             if(Mp3Player::currentPlaylist->songs[i].duration != 0){
@@ -585,6 +573,3 @@ io->ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Con
     return 0;
 }
 }
-
-
-

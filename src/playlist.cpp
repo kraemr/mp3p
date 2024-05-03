@@ -117,7 +117,6 @@ Playlist read_playlist_json(std::string filepath){
 		if(data.contains("description")){
 			playlist.description = data["description"];
 		}
-
 		return playlist;
 	}
 	catch (const json::exception& e)
@@ -126,6 +125,9 @@ Playlist read_playlist_json(std::string filepath){
  		std::cerr << e.what() << std::endl; 
 		Playlist playlist;
 		playlist.name = "__ERROR_JSON";
+		playlist.description = "";
+		playlist.image_path = "";
+		playlist.songs = std::vector<Song>(0);
 		return playlist;
     	}
 }

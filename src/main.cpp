@@ -17,6 +17,7 @@ int main(int argc,char ** argv){
         // Print error message with instructions if user did not set it
         const char * userdata_dir =         getenv("CPPMP3_USERDATA");
         const char * playlist_dir =         getenv("CPPMP3_PLAYLISTS");
+        std::cout << playlist_dir << std::endl;
         if(userdata_dir == NULL){
           userdata_dir = "";
           std::cerr << "ERROR you need to set CPPMP3_USERDATA in your environment or the registry in windows" << std::endl;

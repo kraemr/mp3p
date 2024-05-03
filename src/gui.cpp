@@ -404,6 +404,25 @@ void renderEditPlaylist(ApplicationState& app_state,AppSettings& app_settings){
 }
 
 
+void renderSongAddColumns(int i){
+
+            if(Mp3Player::currentPlaylist->songs[i].duration != 0){
+                ImGui::Text("%s",Mp3Player::currentPlaylist->songs[i].songname.c_str());
+            }else{
+                ImGui::Text("%s","Error");
+            }
+            
+            int col = ImGui::GetColumnOffset(-1);
+            ImGui::SetColumnOffset(col,0);
+            ImGui::SetColumnWidth(col,(float)(SongsSize.x-(SongsSize.x/7)));
+            //Duration
+            std::string formatted_minutes_seconds_str = Mp3Player::formatMinutesSeconds(Mp3Player::currentPlaylist->songs[i].duration);
+            ImGui::NextColumn();
+            ImGui::Text("%s",formatted_minutes_seconds_str.c_str());
+            ImGui::SameLine();
+            ImGui::NextColumn();
+}
+
 // Simplify song select by removing the PlAY Button
 void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
     int res=0;
@@ -422,6 +441,7 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
     if(ImGui::Button("Edit")){
         app_state.edit_playlist = true;
     }    
+
     ImGui::Columns(2, "##songselectColumns", false);
     ImGui::Text("Song / Artist");
     ImGui::NextColumn();
@@ -435,45 +455,25 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
             std::string PbuttonStr="##PButton";//## Gets ignored but this enables us to have an internal id
             PbuttonStr +=std::to_string(i);
             mouse_click = 0;
+            row_clicked = false;
             ClickableTableRow(PbuttonStr.c_str(),&row_clicked,&mouse_click);            
-            ImGui::SameLine();
-            if(mouse_click == 0){
-                //no op
-            }            
-            else if( mouse_click == 1){
-               
+            ImGui::SameLine();            
+
+            if( mouse_click == 1){
                 res=Mp3Player::playSongAtIndex(i);
                 if(res < 0){
                     std::cout << "couldnt play Song at" << i << std::endl;
                 }
                 Mp3Player::startMusic();
-            
+                renderSongAddColumns(i);
             }
-            else {
+            else if(mouse_click == 2) {
                 std::cout << "remove: " << i << std::endl;
                 Mp3Player::removeSong(i);
             }
-            
-            if(Mp3Player::currentPlaylist->songs[i].duration != 0){
-                ImGui::Text("%s",Mp3Player::currentPlaylist->songs[i].songname.c_str());
-            }else{
-                ImGui::Text("%s","Error");
+            else{
+                renderSongAddColumns(i);
             }
-            int col = ImGui::GetColumnOffset(-1);
-            ImGui::SetColumnOffset(col,0);
-            ImGui::SetColumnWidth(col,(float)(SongsSize.x-(SongsSize.x/7)));
-            
-            //Duration
-            std::string formatted_minutes_seconds_str = Mp3Player::formatMinutesSeconds(Mp3Player::currentPlaylist->songs[i].duration);
-            ImGui::NextColumn();
-            ImGui::Text("%s",formatted_minutes_seconds_str.c_str());
-            ImGui::SameLine();
-            /*
-            ImGui::NextColumn();
-            if(ImGui::Button(DbuttonStr.c_str())){
-                res = Mp3Player::removeSong(i);
-            }*/
-            ImGui::NextColumn();
         }
         
     }

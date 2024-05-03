@@ -547,7 +547,11 @@ i32 loadDifferentPlaylist(std::string filepath){
 }
 
 i32 decodeSongsPlaylist(Playlist* playlist){
-    if(playlist == nullptr){
+    std::cout << (playlist == 0) << std::endl;
+    if(playlist == NULL){
+        return -1;
+    }
+    if(playlist == nullptr ){
         std::cerr << "decodeSongsPlaylist: " <<  playlist->name << " Playlist was null"<<std::endl;
         return -1;
     }

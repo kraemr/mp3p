@@ -451,9 +451,9 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
         for(long unsigned int i = 0; i < Mp3Player::currentPlaylist->songs.size();i++){
             std::string PbuttonStr="##PButton";//## Gets ignored but this enables us to have an internal id
             PbuttonStr +=std::to_string(i);
+	    row_clicked = false;
             ClickableTableRow(PbuttonStr.c_str(),&row_clicked,&mouse_click);            
             ImGui::SameLine();            
-            row_clicked = false;
             if( mouse_click == 1 && row_clicked){
                 res=Mp3Player::playSongAtIndex(i);
                 if(res < 0){

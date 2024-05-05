@@ -37,8 +37,6 @@ int decodeSongsPlaylist(Playlist* playlist);
 void adjustVolumeInSteps(bool vol_down,float step);
 bool songIsInPlaylist(Playlist * playlist,std::string song_name);
 int refreshAudioDevices();
-
-
 extern Song* currentSong;
 extern int signal;
 extern std::vector<Playlist> playlistsVec;
@@ -53,5 +51,4 @@ extern unsigned int playbackDeviceCount;
 extern ma_device_info* pPlaybackDeviceInfos;
 extern int currentSongId;
 extern std::string current_device_name;
- 
 }

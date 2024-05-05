@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <iterator>
 #include <string>
+#include <uchar.h>
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #include "../include/stb_image.h"
@@ -315,7 +316,6 @@ void renderPlayer(ApplicationState& app_state,AppSettings& app_settings){
 }
 
 void renderDebug(ApplicationState& app_state,AppSettings& app_settings){
-    
     ImGui::Begin("Debug");
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io->Framerate, io->Framerate);
     ImGui::Text("Playlist != nullptr: %d",Mp3Player::currentPlaylist != nullptr);
@@ -329,10 +329,12 @@ void renderDebug(ApplicationState& app_state,AppSettings& app_settings){
     ImGui::Text("Userdata Path: %s",app_settings.userdata_directory_path.c_str());
     ImGui::Text("Devices:");
 
+    const unsigned char * test_unicode = (const unsigned char*)u8"°`äüö";
+    ImGui::Text("Unicode: %s", test_unicode);
+
     for(unsigned int i = 0; i < Mp3Player::playbackDeviceCount;i++ ){
         ImGui::Text("%s %llu",Mp3Player::pPlaybackDeviceInfos[i].name,(long long unsigned int) &Mp3Player::devices[i]);
     }
-
     ImGui::End(); 
 }
 
@@ -369,19 +371,16 @@ void ClickableTableRow(const char* label, bool* selected,short* mouse_click) {
     if (ImGui::Selectable(label, *selected)) {
         *selected = !(*selected); // Toggle selection
     }
-    if (ImGui::IsItemHovered())
-    {
-        if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
-        {
-            (*mouse_click) = 1;
-        }
-        else if (ImGui::IsMouseReleased(ImGuiMouseButton_Right))
-        {
-            (*mouse_click) = 2;
-        }
+    if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Left)){
+        (*mouse_click) = 1;
     }
+    else if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right)){
+        (*mouse_click) = 2;
+    }else{
+        (*mouse_click) = 0;
+    }
+    
 }
-
 
 void renderEditPlaylist(ApplicationState& app_state,AppSettings& app_settings){
     if(app_state.edit_playlist){
@@ -405,22 +404,20 @@ void renderEditPlaylist(ApplicationState& app_state,AppSettings& app_settings){
 
 
 void renderSongAddColumns(int i){
-
-            if(Mp3Player::currentPlaylist->songs[i].duration != 0){
-                ImGui::Text("%s",Mp3Player::currentPlaylist->songs[i].songname.c_str());
-            }else{
-                ImGui::Text("%s","Error");
-            }
-            
-            int col = ImGui::GetColumnOffset(-1);
-            ImGui::SetColumnOffset(col,0);
-            ImGui::SetColumnWidth(col,(float)(SongsSize.x-(SongsSize.x/7)));
-            //Duration
-            std::string formatted_minutes_seconds_str = Mp3Player::formatMinutesSeconds(Mp3Player::currentPlaylist->songs[i].duration);
-            ImGui::NextColumn();
-            ImGui::Text("%s",formatted_minutes_seconds_str.c_str());
-            ImGui::SameLine();
-            ImGui::NextColumn();
+    if(Mp3Player::currentPlaylist->songs[i].duration != 0){
+        ImGui::Text("%s",Mp3Player::currentPlaylist->songs[i].songname.c_str());
+    }else{
+        ImGui::Text("%s","Error");
+    }  
+    int col = ImGui::GetColumnOffset(-1);
+    ImGui::SetColumnOffset(col,0);
+    ImGui::SetColumnWidth(col,(float)(SongsSize.x-(SongsSize.x/7)));
+    //Duration
+    std::string formatted_minutes_seconds_str = Mp3Player::formatMinutesSeconds(Mp3Player::currentPlaylist->songs[i].duration);
+    ImGui::NextColumn();
+    ImGui::Text("%s",formatted_minutes_seconds_str.c_str());
+    ImGui::SameLine();
+    ImGui::NextColumn();
 }
 
 // Simplify song select by removing the PlAY Button
@@ -454,12 +451,10 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
         for(long unsigned int i = 0; i < Mp3Player::currentPlaylist->songs.size();i++){
             std::string PbuttonStr="##PButton";//## Gets ignored but this enables us to have an internal id
             PbuttonStr +=std::to_string(i);
-            mouse_click = 0;
-            row_clicked = false;
             ClickableTableRow(PbuttonStr.c_str(),&row_clicked,&mouse_click);            
             ImGui::SameLine();            
-
-            if( mouse_click == 1){
+            row_clicked = false;
+            if( mouse_click == 1 && row_clicked){
                 res=Mp3Player::playSongAtIndex(i);
                 if(res < 0){
                     std::cout << "couldnt play Song at" << i << std::endl;
@@ -467,9 +462,11 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
                 Mp3Player::startMusic();
                 renderSongAddColumns(i);
             }
-            else if(mouse_click == 2) {
+            else if(mouse_click == 2 ) {
                 std::cout << "remove: " << i << std::endl;
                 Mp3Player::removeSong(i);
+                mouse_click = 0;
+                break; // a little hacky but works, this makes the sure that only the song at current index is deleted
             }
             else{
                 renderSongAddColumns(i);
@@ -505,8 +502,6 @@ void renderNewPlaylist(ApplicationState& app_state,AppSettings& app_settings){
     }
 }
 
-
-
 void zero_buf(){
     for(int i = 0; i < 256;i++){
         playlistTempBuf[i] = 0;
@@ -519,51 +514,49 @@ int initGui(){
     if (!glfwInit())
         return 1;
     // Decide GL+GLSL versions
-#if defined(IMGUI_IMPL_OPENGL_ES2)
-    // GL ES 2.0 + GLSL 100
-    const char* glsl_version = "#version 100";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
-#elif defined(__APPLE__)
-    // GL 3.2 + GLSL 150
-    const char* glsl_version = "#version 150";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);    // Required on Mac
-#else
+    #if defined(IMGUI_IMPL_OPENGL_ES2)
+        // GL ES 2.0 + GLSL 100
+        const char* glsl_version = "#version 100";
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+    #elif defined(__APPLE__)
+        // GL 3.2 + GLSL 150
+        const char* glsl_version = "#version 150";
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);    // Required on Mac
+    #else
     // GL 3.0 + GLSL 130
     const char* glsl_version = "#version 130";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);  // 3.0+ only
-#endif
-window = glfwCreateWindow(windowWidth, windowHeight, "Mp3Player", nullptr, nullptr);
-if (window == nullptr)
-    return 1;
-glfwMakeContextCurrent(window);
-//glfwSwapInterval(1); // Enable vsync
-// Setup Dear ImGui context
-IMGUI_CHECKVERSION();
-ImGui::CreateContext();
-io = &ImGui::GetIO(); 
-(void)io;
-io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-io->ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-   // Setup Dear ImGui style
+    #endif
+    window = glfwCreateWindow(windowWidth, windowHeight, "Mp3Player", nullptr, nullptr);
+    if (window == nullptr)
+        return 1;
+    glfwMakeContextCurrent(window);
+    //glfwSwapInterval(1); // Enable vsync
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    io = &ImGui::GetIO(); 
+    (void)io;
+    io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io->ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsLight();
-
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
-#ifdef __EMSCRIPTEN__
-    ImGui_ImplGlfw_InstallEmscriptenCanvasResizeCallback("#canvas");
-#endif
+    #ifdef __EMSCRIPTEN__
+        ImGui_ImplGlfw_InstallEmscriptenCanvasResizeCallback("#canvas");
+    #endif
     ImGui_ImplOpenGL3_Init(glsl_version);
     glewInit();
-
     if(Mp3Player::currentPlaylist != nullptr){
         LoadTextureFromFile(Mp3Player::currentPlaylist->image_path.c_str(),&currentPlaylist_image);
     }

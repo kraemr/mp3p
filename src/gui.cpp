@@ -439,6 +439,13 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
         app_state.edit_playlist = true;
     }    
 
+    if(ImGui::Button("Shuffle")){
+        Mp3Player::shufflePlaylist();
+    }
+    if(app_state.currentPlaylist != nullptr){
+       // ImGui::Checkbox("Repeat",&app_state.currentPlaylist->shouldLoop);
+    }
+
     ImGui::Columns(2, "##songselectColumns", false);
     ImGui::Text("Song / Artist");
     ImGui::NextColumn();

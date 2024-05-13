@@ -193,6 +193,13 @@ typedef enum
 MA_ATOMIC_SAFE_TYPE_DECL(i32, 4, device_state)
 */
 
+void shufflePlaylist(){
+    if(currentPlaylist != nullptr){
+        shuffle_playlist(currentPlaylist);
+    }
+}
+
+
 i32 refreshAudioDevices(){
     ma_device_info* tmp_playback_dev_info;
     ma_context tmp_context;

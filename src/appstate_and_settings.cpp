@@ -14,9 +14,10 @@ namespace AppSettingsManager{
         data["device_name"] = "None";
         data["should_recurse_subdirs"] = false;
         data["debug"] = false; 
-        
         data["userdata_directory_path"] = "";
         data["playlist_directory_path"] = "";
+        data["font_path"] = "";
+        data["font_size"] = 12;
 
         std::string jsonStr = data.dump();
         std::ofstream outputFile(abs_settings_json_path);
@@ -41,10 +42,13 @@ namespace AppSettingsManager{
             pAppSettings->debug = data["debug"];
             pAppSettings->caching = data["caching"];
             pAppSettings->userdata_directory_path = data["userdata_directory_path"];
+            pAppSettings->font_path = data["font_path"];
+            pAppSettings->font_size = data["font_size"];
 
         }
         catch (const json::exception& e){
-            std::cerr << "reloadAppSettings failed: " << abs_settings_json_path << std::endl;
+            std::cerr << e.what() << std::endl;
+         //   std::cerr << "reloadAppSettings failed: " << abs_settings_json_path << std::endl;
             return -2;
         }
 
@@ -61,6 +65,9 @@ namespace AppSettingsManager{
         data["should_recurse_subdirs"] = pAppSettings->should_recurse_subdirs;
         data["debug"] = pAppSettings->debug;
         data["caching"] = pAppSettings->caching;
+        data["font_path"] = pAppSettings->font_path;
+        data["font_size"] = pAppSettings->font_size;
+
         std::string jsonStr = data.dump();
         std::ofstream outputFile(abs_settings_json_path);
 	    if (outputFile.is_open()) {
@@ -82,6 +89,8 @@ namespace AppStateManager{
         data["show_new_playlist"] = false;
         data["current_playlist_name"] = "";
         data["volume"] = 0.7f;
+        data["load_font"] = false;
+        data["font_path"] = "";
         std::string jsonStr = data.dump();
         std::ofstream outputFile(abs_state_json_path);
 	    if (outputFile.is_open()) {

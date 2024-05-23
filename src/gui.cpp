@@ -38,8 +38,16 @@ namespace Mp3Gui{
     ImVec2 PlaylistImageSize = {(float)windowWidth/8,(float)windowWidth/8};;
     //This is the playlist getting created by new Playlist window
     Playlist created_playlist;
-    char name[256];
-    char description[4096];
+
+    static char name[256];
+    static char description[4096];
+    static char font_path[512];
+
+void loadFont(ApplicationState* app_state,AppSettings* app_settings){
+    //io->Fonts->AddFontFromFileTTF(path.c_str(), size, nullptr, io->Fonts->GetGlyphRangesJapanese());
+    app_state->load_font = true;
+}
+
 
 void updatePositionsAndSizes(){
     playlistPos = {(float)0,(float)0};;
@@ -224,9 +232,10 @@ void renderSettingsWindow(ApplicationState& app_state,AppSettings& app_settings)
         ImGui::Begin("Settings",&app_state.show_settings);
         ImGui::SetWindowSize({io->DisplaySize.x - (io->DisplaySize.x/4)
         ,(float)(io->DisplaySize.y-(io->DisplaySize.y/12))},0);
+
         ImGui::Checkbox("Debug",&app_settings.debug);
         ImGui::Checkbox("Cache Song Duration in Memory",&app_settings.caching);
-        
+    
         std::vector<std::string> devices = Mp3Player::getDeviceNames();
         for(long unsigned int i = 0; i < devices.size();i++){
             if(ImGui::Button(devices[i].c_str())){
@@ -239,6 +248,14 @@ void renderSettingsWindow(ApplicationState& app_state,AppSettings& app_settings)
                 }
             }
         }
+        ImGui::InputText("##loadFontPathInputText", font_path,512); 
+        ImGui::InputFloat("##loadFontPixelSizeInputFloat", &app_settings.font_size); 
+
+        if(ImGui::Button("load##FONTLOADBTN")){
+            app_settings.font_path = font_path;
+            loadFont(&app_state,&app_settings);
+        }
+
         ImGui::End();
     }
 }
@@ -405,7 +422,7 @@ void renderEditPlaylist(ApplicationState& app_state,AppSettings& app_settings){
 
 void renderSongAddColumns(int i){
     if(Mp3Player::currentPlaylist->songs[i].duration != 0){
-        ImGui::Text("%s",Mp3Player::currentPlaylist->songs[i].songname.c_str());
+        ImGui::Text(u8"%s",Mp3Player::currentPlaylist->songs[i].songname.c_str());
     }else{
         ImGui::Text("%s","Error");
     }  
@@ -427,7 +444,12 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
     ImGui::SetNextWindowPos(SongsPos);
     // if resized then SetWindowSize and Posiion
     ImGui::Begin("Song Select");
+
+    if((currentPlaylist_image.texture) == 0){
+        LoadTextureFromFile(Mp3Player::currentPlaylist->image_path.c_str(),&currentPlaylist_image);
+    }
     ImGui::Image((void*)(intptr_t)(currentPlaylist_image.texture), PlaylistImageSize);    
+    
     std::string current_playlist_str=Mp3Player::getPlaylistName();
     ImGui::SameLine();
 
@@ -458,7 +480,7 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
         for(long unsigned int i = 0; i < Mp3Player::currentPlaylist->songs.size();i++){
             std::string PbuttonStr="##PButton";//## Gets ignored but this enables us to have an internal id
             PbuttonStr +=std::to_string(i);
-	    row_clicked = false;
+	        row_clicked = false;
             ClickableTableRow(PbuttonStr.c_str(),&row_clicked,&mouse_click);            
             ImGui::SameLine();            
             if( mouse_click == 1 && row_clicked){
@@ -515,6 +537,7 @@ void zero_buf(){
     }
 }
 
+
 int initGui(){
     zero_buf();
     glfwSetErrorCallback(glfw_error_callback);
@@ -570,6 +593,8 @@ int initGui(){
     glfwSetDropCallback(window,GLFWDropCallback);
     glfwSetWindowCloseCallback(window, glfw_exit_window_callback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+//    loadFont("/usr/share/fonts/opentype/unifont/unifont.otf", 18);
+
     return 0;
 }
 }

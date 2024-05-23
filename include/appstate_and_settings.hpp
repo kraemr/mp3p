@@ -13,6 +13,8 @@ struct AppSettings{
     unsigned int MaxcacheMemory; // This tells the program at what point something needs to be removed from the cache
     bool debug;
     std::string userdata_directory_path;
+    std::string font_path;
+    float font_size;
 };
 
 struct ApplicationState{
@@ -28,6 +30,7 @@ struct ApplicationState{
     int* currentPlaylistid;
     std::string currentSongPath;
     std::string currentPlaylistName;
+    bool load_font;
     float volume;
 };
 

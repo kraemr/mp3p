@@ -116,29 +116,35 @@ inline bool checkMouseMoved(){
 int run(std::string userdata_dir,std::string playlists_dir){
     app_settings.userdata_directory_path = userdata_dir;
     app_settings.playlist_directory_path = playlists_dir;
+    Mp3Gui::initGui();
 
+    std::cout << app_settings.userdata_directory_path << std::endl;
     int ret = AppSettingsManager::reloadSettings(userdata_dir+"settings.json",&app_settings);
     if(ret == -2){
         std::cerr << "reloadSettings Failed ?" << std::endl;
         ret = AppSettingsManager::reloadSettings(userdata_dir+"settings.json",&app_settings);
     }
-    
+    if(ret >= 0){
+        ImGui::GetIO().Fonts->AddFontFromFileTTF(app_settings.font_path.c_str(),app_settings.font_size, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesJapanese());
+    }
+    // STATE
     ret = AppStateManager::reloadState(userdata_dir+"state.json",&app_state);
-    app_settings.playlist_directory_path = playlists_dir;
     if(ret == -2){ // Then state.json didnt exist, after the call it was created so reload again
         ret = AppStateManager::reloadState(userdata_dir+"state.json",&app_state);
     }
+       
     ret = (int)setupMp3Player();
-    Mp3Gui::initGui();
-    Mp3Player::setVolume(app_state.volume);
     ret = Mp3Player::changeAudioDevice(app_settings.device_name);
-    std::cout << "change Audio: "<<ret << std::endl;    
-    loadTheme("theme.json");
     if(ret != 0){
         std::cout << "couldnt use audio device: " << app_settings.device_name<<std::endl; 
         Mp3Player::fallbackAudioDevice();
     }
+    Mp3Player::setVolume(app_state.volume);
+    std::cout << "change Audio: "<<ret << std::endl;    
+
+    loadTheme("theme.json");
     ImVec4 clear_color = ImVec4(0, 0, 0, 0.1f);
+    
     loadTheme("theme.json");
     while (!glfwWindowShouldClose(Mp3Gui::window))
     {
@@ -166,12 +172,22 @@ int run(std::string userdata_dir,std::string playlists_dir){
             std::this_thread::sleep_for(std::chrono::milliseconds(33));//30 fps   
         }
 
+
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
+        if(app_state.load_font){
+            ImGui::GetIO().Fonts->Clear();
+            ImGui::GetIO().Fonts->AddFontFromFileTTF(app_settings.font_path.c_str(),app_settings.font_size, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesJapanese());
+            app_state.load_font = false;
+            ImGui::GetIO().Fonts->Build();
+            ImGui_ImplOpenGL3_DestroyFontsTexture();
+            ImGui_ImplOpenGL3_CreateFontsTexture();
+        }
+
         ImGui::NewFrame();
         Mp3Gui::updatePositionsAndSizes();
-        Mp3Gui::renderPlaylists(app_state,app_settings);
         Mp3Gui::renderSettingsWindow(app_state,app_settings);
+        Mp3Gui::renderPlaylists(app_state,app_settings);
         Mp3Gui::renderCustomizeWindow(app_state,app_settings);
         Mp3Gui::renderSongSelect(app_state,app_settings);
         Mp3Gui::renderPlayer(app_state,app_settings);

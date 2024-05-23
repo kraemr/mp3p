@@ -11,7 +11,6 @@ int main(int argc,char ** argv){
     if(start_server){ 
   //      server_thread = std::thread(runApi);
     }
-
     if(start_app){
         // User has to set env variables for where it should be saved 
         // Print error message with instructions if user did not set it

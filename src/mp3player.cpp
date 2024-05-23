@@ -550,6 +550,7 @@ std::string formatMinutesSeconds(u32 in_seconds){
 i32 loadDifferentPlaylist(std::string filepath){
     Playlist playlist = read_playlist_json(filepath);
     currentPlaylist = &playlist;
+    
     return 0;
 }
 

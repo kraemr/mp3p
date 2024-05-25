@@ -6,6 +6,7 @@
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #include "../include/stb_image.h"
+#include "../include/caching.hpp"
 #endif
 namespace Mp3Gui{
     GLFWwindow * window;
@@ -28,23 +29,21 @@ namespace Mp3Gui{
 
     ImVec2 playlistPos = {(float)0,(float)0};;
     ImVec2 playlistSize = {(float)windowWidth/6,(float)windowHeight};;
-    
     ImVec2 playerPos = {(float)windowWidth,(float)windowHeight};
     ImVec2 playerSize = {(float)windowWidth - playlistSize.x,(float)windowHeight/12};
-
     ImVec2 SongsPos = {playlistSize.x,0};;
-    ImVec2 SongsSize = {(float)windowWidth-playlistSize.x,(float)windowHeight};;
+    ImVec2 SongsSize = {(float)windowWidth-playlistSize.x,(float)windowHeight};
+    ImVec2 PlaylistImageSize = {(float)windowWidth/8,(float)windowWidth/8};
     
-    ImVec2 PlaylistImageSize = {(float)windowWidth/8,(float)windowWidth/8};;
     //This is the playlist getting created by new Playlist window
     Playlist created_playlist;
-
     static char name[256];
     static char description[4096];
     static char font_path[512];
+    static float image_ratio = 1;
 
-void loadFont(ApplicationState* app_state,AppSettings* app_settings){
-    //io->Fonts->AddFontFromFileTTF(path.c_str(), size, nullptr, io->Fonts->GetGlyphRangesJapanese());
+
+inline void loadFont(ApplicationState* app_state,AppSettings* app_settings){
     app_state->load_font = true;
 }
 
@@ -52,14 +51,11 @@ void loadFont(ApplicationState* app_state,AppSettings* app_settings){
 void updatePositionsAndSizes(){
     playlistPos = {(float)0,(float)0};;
     playlistSize = {(float)io->DisplaySize.x/6,io->DisplaySize.y};;
-    
     playerSize = {(float)io->DisplaySize.x - playlistSize.x,((float)io->DisplaySize.y) / (float)11.5};
     playerPos = {(float)playlistPos.x + playlistSize.x,(float)io->DisplaySize.y-playerSize.y};
-    
     SongsPos = {playlistSize.x,0};;
     SongsSize = {(float)io->DisplaySize.x-playlistSize.x,(float)io->DisplaySize.y-playerSize.y};
-
-    PlaylistImageSize = {(float)io->DisplaySize.x /8,(float)io->DisplaySize.x/8};
+    PlaylistImageSize = {(float)io->DisplaySize.x /8,((float)io->DisplaySize.x /8) * image_ratio} ;
 }
     
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -93,6 +89,8 @@ bool LoadTextureFromFile(const char* filename,struct stb_IMAGE* image)
     image->texture = image_texture;
     image->w = image_width;
     image->h = image_height;
+    image_ratio = float(image->h) / float(image->w);
+    std::cout << "RATIO: "<< image_ratio << " W:" << image_width << " H:" << image_height  << std::endl;
     return true;
 }
 
@@ -345,13 +343,25 @@ void renderDebug(ApplicationState& app_state,AppSettings& app_settings){
     ImGui::Text("Playlist Path: %s",app_settings.playlist_directory_path.c_str());
     ImGui::Text("Userdata Path: %s",app_settings.userdata_directory_path.c_str());
     ImGui::Text("Devices:");
-
-    const unsigned char * test_unicode = (const unsigned char*)u8"°`äüö";
-    ImGui::Text("Unicode: %s", test_unicode);
-
     for(unsigned int i = 0; i < Mp3Player::playbackDeviceCount;i++ ){
         ImGui::Text("%s %llu",Mp3Player::pPlaybackDeviceInfos[i].name,(long long unsigned int) &Mp3Player::devices[i]);
     }
+    auto map =getCache();
+    std::map<std::string, unsigned long long>::iterator it = map.begin();
+	ImGui::Text("CACHE: ");
+	// Iterating over the map using Iterator till map end.
+	while (it != map.end())
+	{
+		// Accessing the key
+		std::string key = it->first;
+		unsigned long long value = it->second;
+		//std::cout << key << " :: " << value << std::endl;
+		// iterator incremented to point next item
+		it++;
+        ImGui::Text("%s :: %llu",key.c_str(),value);
+	}
+
+
     ImGui::End(); 
 }
 
@@ -444,30 +454,24 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
     ImGui::SetNextWindowPos(SongsPos);
     // if resized then SetWindowSize and Posiion
     ImGui::Begin("Song Select");
-
     if((currentPlaylist_image.texture) == 0){
         LoadTextureFromFile(Mp3Player::currentPlaylist->image_path.c_str(),&currentPlaylist_image);
     }
     ImGui::Image((void*)(intptr_t)(currentPlaylist_image.texture), PlaylistImageSize);    
-    
     std::string current_playlist_str=Mp3Player::getPlaylistName();
     ImGui::SameLine();
-
     if(Mp3Player::currentPlaylist != nullptr){
         ImGui::Text("Current Playlist: %s \nDescription: %s",current_playlist_str.c_str(),Mp3Player::currentPlaylist->description.c_str());
     }    
-    
     if(ImGui::Button("Edit")){
         app_state.edit_playlist = true;
     }    
-
     if(ImGui::Button("Shuffle")){
         Mp3Player::shufflePlaylist();
     }
     if(app_state.currentPlaylist != nullptr){
        // ImGui::Checkbox("Repeat",&app_state.currentPlaylist->shouldLoop);
     }
-
     ImGui::Columns(2, "##songselectColumns", false);
     ImGui::Text("Song / Artist");
     ImGui::NextColumn();
@@ -475,7 +479,6 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
     ImGui::NextColumn();
     bool row_clicked=false;
     short mouse_click = 0; // no click = 0, 1 is left , 2 is right
-
     if(Mp3Player::currentPlaylist != nullptr){
         for(long unsigned int i = 0; i < Mp3Player::currentPlaylist->songs.size();i++){
             std::string PbuttonStr="##PButton";//## Gets ignored but this enables us to have an internal id

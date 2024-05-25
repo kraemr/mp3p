@@ -5,3 +5,4 @@
 unsigned long long getCachedDuration(std::string path);
 void setCachedDuration(std::string path,unsigned long long duration);
 void flushCache();
+std::map<std::string,unsigned long long> getCache();

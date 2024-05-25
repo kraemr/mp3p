@@ -14,8 +14,8 @@ int main(int argc,char ** argv){
     if(start_app){
         // User has to set env variables for where it should be saved 
         // Print error message with instructions if user did not set it
-        const char * userdata_dir =         getenv("CPPMP3_USERDATA");
-        const char * playlist_dir =         getenv("CPPMP3_PLAYLISTS");
+        const char * userdata_dir =  getenv("CPPMP3_USERDATA");
+        const char * playlist_dir =  getenv("CPPMP3_PLAYLISTS");
         std::cout << playlist_dir << std::endl;
         if(userdata_dir == NULL){
           userdata_dir = "";

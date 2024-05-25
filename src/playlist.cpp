@@ -108,7 +108,7 @@ Playlist read_playlist_json(std::string filepath){
 		}
 		else if(data.contains("image_path") && !data["image_path"].is_null()){
 			playlist.image_path = getPath(data["image_path"]);
-			std::cout << "playlist " << playlist.name <<  playlist.image_path << std::endl;
+		//	std::cout << "playlist " << playlist.name <<  playlist.image_path << std::endl;
 		}
 		else{
 			//data["image_path"] = "";

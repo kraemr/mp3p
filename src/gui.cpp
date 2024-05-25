@@ -39,7 +39,6 @@ namespace Mp3Gui{
     Playlist created_playlist;
     static char name[256];
     static char description[4096];
-    static char font_path[512];
     static float image_ratio = 1;
 
 
@@ -246,11 +245,11 @@ void renderSettingsWindow(ApplicationState& app_state,AppSettings& app_settings)
                 }
             }
         }
-        ImGui::InputText("##loadFontPathInputText", font_path,512); 
+
+        ImGui::InputText("##loadFontPathInputText", (char *)app_settings.font_path.data(),512); 
         ImGui::InputFloat("##loadFontPixelSizeInputFloat", &app_settings.font_size); 
 
         if(ImGui::Button("load##FONTLOADBTN")){
-            app_settings.font_path = font_path;
             loadFont(&app_state,&app_settings);
         }
 
@@ -377,14 +376,22 @@ void renderPlaylists(ApplicationState& app_state,AppSettings& app_settings){
         std::string DbuttonStr="-##DButton";
         DbuttonStr += Mp3Player::playlistsVec[i].name + std::to_string(i);     
         std::string PbuttonStr ="##PButton";    
-        std::string pstr = Mp3Player::playlistsVec[i].name  + "##PButton" + std::to_string(i);
+        std::string pstr; 
+        if(strlen(Mp3Player::playlistsVec[i].name.c_str()) == 0){
+            pstr = "##PButton" + std::to_string(i);
+        }else{
+            pstr = Mp3Player::playlistsVec[i].name  + "##PButton" + std::to_string(i);
+        }
+        
         if( ImGui::Button(pstr.c_str() ) && app_state.edit_playlist == false){
             Mp3Player::loadDifferentPlaylist(i);
             LoadTextureFromFile(Mp3Player::currentPlaylist->image_path.c_str(),&currentPlaylist_image);//Eh this should work
             Mp3Player::decodeSongsPlaylist(Mp3Player::currentPlaylist);
 
         }
+
         ImGui::SameLine();
+        
         if(ImGui::Button(DbuttonStr.c_str())&& app_state.edit_playlist == false){
            Mp3Player::removePlaylist(i); 
            AppStateManager::saveChangedState(app_settings.userdata_directory_path + "state.json",&app_state);
@@ -410,19 +417,23 @@ void ClickableTableRow(const char* label, bool* selected,short* mouse_click) {
 }
 
 void renderEditPlaylist(ApplicationState& app_state,AppSettings& app_settings){
-    if(app_state.edit_playlist){
+    if(app_state.edit_playlist && Mp3Player::currentPlaylist != nullptr){
         ImGui::SetNextWindowSize({SongsSize.x /2,SongsSize.y/2},0);
         ImGui::Begin( "edit Playlist",&app_state.edit_playlist);
-        ImGui::InputText("Playlist Name:",name,256);
-        ImGui::InputText("Playlist Description:",description,4096);
+        if(Mp3Player::currentPlaylist->name.length() < 256){
+            Mp3Player::currentPlaylist->name.resize(256);
+            std::cout << Mp3Player::currentPlaylist->name.size();
+        }
+        if(Mp3Player::currentPlaylist->description.length() < 4096){
+            Mp3Player::currentPlaylist->description.resize(4096);
+        }
+        ImGui::InputText("Playlist Name:",Mp3Player::currentPlaylist->name.data(),256);
+        ImGui::InputText("Playlist Description:",Mp3Player::currentPlaylist->description.data(),4096);
+        
         ImGui::Text("Drag and Drop image here to set it as the playlist image");
         ImGui::Text("Playlist Image: ");
         ImGui::Image((void*)(intptr_t)(currentPlaylist_image.texture), PlaylistImageSize);    
         if(ImGui::Button("Save")){
-            if(Mp3Player::currentPlaylist != nullptr){
-                Mp3Player::currentPlaylist->name = name;
-                Mp3Player::currentPlaylist->description = description;
-            }
             saveAllChangesToPlaylists();
         }
         ImGui::End();

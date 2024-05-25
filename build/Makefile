@@ -27,8 +27,7 @@ OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 UNAME_S := $(shell uname -s)
 LINUX_GL_LIBS = -lGL -lGLEW
 CXXFLAGS = -std=c++20 -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends
-CXXFLAGS +=  -Wall -Wformat -O2 -fno-char8_t
-#-DSTATIC_GLFW3
+CXXFLAGS +=  -Wall -Wformat -O0 -fno-char8_t
 LIBS =
 STATIC_LBIS = libglfw3_win32.a
 GLFW_INCLUDE = $(INCLUDE_DIR)/glfw/include

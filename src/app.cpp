@@ -1,7 +1,7 @@
 // This includes things that do not belong to gui logic or setup
 #include "../include/app.hpp"
+#include "../include/stdafx.hpp"
 #include <thread>
-
 int second;
 int last_second;
 AppSettings app_settings;
@@ -31,8 +31,6 @@ void setEnemyMouseStyle(){
     style.GrabMinSize = 20;
     style.FrameRounding = 3;
     style.Colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f); // most of the text
-
-
     style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.00f, 0.40f, 0.41f, 1.00f);
     style.Colors[ImGuiCol_WindowBg] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
 
@@ -117,9 +115,12 @@ int run(std::string userdata_dir,std::string playlists_dir){
         std::cerr << "reloadSettings Failed ?" << std::endl;
         ret = AppSettingsManager::reloadSettings(userdata_dir+"settings.json",&app_settings);
     }
-    if(ret >= 0){
+
+    const std::filesystem::path p{app_settings.font_path.c_str()};
+    if(fileExists(p)){
         ImGui::GetIO().Fonts->AddFontFromFileTTF(app_settings.font_path.c_str(),app_settings.font_size, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesJapanese());
     }
+    
     // STATE
     ret = AppStateManager::reloadState(userdata_dir+"state.json",&app_state);
     if(ret == -2){ // Then state.json didnt exist, after the call it was created so reload again

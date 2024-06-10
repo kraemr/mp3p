@@ -29,25 +29,25 @@ namespace AppSettingsManager{
     }
 
     int reloadSettings(std::string abs_settings_json_path,AppSettings* pAppSettings){
-        std::ifstream f(abs_settings_json_path);
-        if(f.is_open() == false){
-            resetDefaults(abs_settings_json_path);
-            return -2; 
-        }
+        std::cout << "reload Settings: " << abs_settings_json_path << std::endl;
         try{
-		    json data = json::parse(f);
+	        std::ifstream f(abs_settings_json_path);
+            if(f.is_open() == false){
+                resetDefaults(abs_settings_json_path);
+                return -2; 
+            }
+    	    json data = json::parse(f);
             pAppSettings->playlist_directory_path = data["playlist_directory_path"];
             pAppSettings->deviceid = data["deviceid"];
             pAppSettings->device_name = data["device_name"];
             pAppSettings->should_recurse_subdirs = data["should_recurse_subdirs"];
             pAppSettings->debug = data["debug"];
-            pAppSettings->caching = data["caching"];
+            //pAppSettings->caching = data["caching"];
             pAppSettings->userdata_directory_path = data["userdata_directory_path"];
             pAppSettings->font_path = data["font_path"];
             pAppSettings->font_size = data["font_size"];
             pAppSettings->fps_active = data["fps_active"];
             pAppSettings->fps_inactive = data["fps_inactive"];
-
         }
         catch (const json::exception& e){
             std::cerr << e.what() << std::endl;

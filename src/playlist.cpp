@@ -186,31 +186,35 @@ void print_songs(Playlist& playlist){
 
 
 std::vector<Playlist> read_playlists_dir(std::string path){
-	struct stat sb;
-	const std::string split = ".json";
 	std::vector<Playlist> playlists;
-	for(const auto& entry : fs::directory_iterator(path)){
-		std::filesystem::path filename = entry.path();
-		std::string filename_str = filename.string();
-		const char * path = filename_str.c_str();
-		if (stat(path, &sb) == 0 && !(sb.st_mode & S_IFDIR)){
-			Playlist playlist = read_playlist_json(filename_str);
-			if(playlist.name == "__ERROR_JSON"){
-				continue; // found and read playlist, but it isnt valid
-			}
-			playlist.path = filename_str;
-			playlists.push_back(playlist);
-			#ifdef CPPMP3_DEBUG
-				std::cout << STDAFX_YELLOW << path << STDAFX_RESET_COLOR  << std::endl;
-                for(auto element : playlist.songs){
-				std::cout << STDAFX_GREEN << element.songname << STDAFX_RESET_COLOR << std::endl;
-				std::cout << element.filepath << std::endl;
+	try{
+		struct stat sb;
+		const std::string split = ".json";
+		for(const auto& entry : fs::directory_iterator(path)){
+			std::filesystem::path filename = entry.path();
+			std::string filename_str = filename.string();
+			const char * path = filename_str.c_str();
+			if (stat(path, &sb) == 0 && !(sb.st_mode & S_IFDIR)){
+				Playlist playlist = read_playlist_json(filename_str);
+				if(playlist.name == "__ERROR_JSON"){
+					continue; // found and read playlist, but it isnt valid
 				}
-			#endif
-			
+				playlist.path = filename_str;
+				playlists.push_back(playlist);
+				#ifdef CPPMP3_DEBUG
+					std::cout << STDAFX_YELLOW << path << STDAFX_RESET_COLOR  << std::endl;
+            	    for(auto element : playlist.songs){
+						std::cout << STDAFX_GREEN << element.songname << STDAFX_RESET_COLOR << std::endl;
+						std::cout << element.filepath << std::endl;
+					}
+				#endif
+			}
 		}
+		return playlists;
 	}
-	return playlists;
+	catch(std::filesystem::__cxx11::filesystem_error err){
+		return playlists;
+	}
 }
 
 // This shuffles the songs in-mem

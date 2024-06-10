@@ -1,7 +1,4 @@
 #include "../include/stdafx.hpp"
-#include <vector>
-#include <string>
-
 std::vector<std::string> splitString(const std::string& input, const std::string& delimiter) {
     std::vector<std::string> result;
     std::size_t pos = 0;
@@ -14,3 +11,11 @@ std::vector<std::string> splitString(const std::string& input, const std::string
     return result;
 }
 
+bool fileExists(const std::filesystem::path& p)
+{
+    std::filesystem::file_status s = std::filesystem::file_status{};
+    if (std::filesystem::status_known(s) ? std::filesystem::exists(s) : std::filesystem::exists(p))
+        return true;
+    else
+        return false;
+}

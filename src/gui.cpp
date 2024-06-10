@@ -451,7 +451,7 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
     ImGui::SetNextWindowPos(SongsPos);
     // if resized then SetWindowSize and Posiion
     ImGui::Begin("Song Select");
-    if((currentPlaylist_image.texture) == 0){
+    if((currentPlaylist_image.texture) == 0 && Mp3Player::currentPlaylist != nullptr){
         LoadTextureFromFile(Mp3Player::currentPlaylist->image_path.c_str(),&currentPlaylist_image);
     }
     ImGui::Image((void*)(intptr_t)(currentPlaylist_image.texture), PlaylistImageSize);    

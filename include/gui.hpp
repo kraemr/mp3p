@@ -2,15 +2,14 @@
 #define GUI
 #include "../include/imgui/imgui.h"
 #include "../include/imgui/imconfig.h"
-#include "../include/imgui/imgui_impl_glfw.h"
-#include "../include/imgui/imgui_impl_opengl3.h"
+#include "../include/imgui/backends/imgui_impl_glfw.h"
+#include "../include/imgui/backends/imgui_impl_opengl3.h"
 #include <vector>
 #include <string>
 #include "../include/mp3player.hpp"
 #include "../include/appstate_and_settings.hpp"
 #include <iostream>
 #include <bits/stdc++.h>
-#include "../include/glm/glm/glm.hpp"
 #include "../include/glew.h"
 
 #define GL_SILENCE_DEPRECATION

@@ -1,6 +1,10 @@
+#pragma once
 #include <vector>
 #include <string>
+#include <fstream>
+#include <filesystem>
 #ifndef STDAFX_H
+
 #define STDAFX_H
 #define STDAFX_RESET_COLOR "\033[0m"
 #define STDAFX_STDAFX_BLACK "\033[30m"
@@ -29,4 +33,6 @@ typedef short i16;
 typedef char i8;
 typedef float f32;
 typedef double f64;
+
+bool fileExists(const std::filesystem::path& p);
 #endif

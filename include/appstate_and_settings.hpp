@@ -15,6 +15,9 @@ struct AppSettings{
     std::string userdata_directory_path;
     std::string font_path;
     float font_size;
+
+    int fps_inactive;
+    int fps_active;
 };
 
 struct ApplicationState{

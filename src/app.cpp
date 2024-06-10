@@ -160,9 +160,14 @@ int run(std::string userdata_dir,std::string playlists_dir){
         glfwPollEvents();
         // Lets keep it at that for now TODO: Custom FPS for inactive and active 
         if(!glfwGetWindowAttrib(Mp3Gui::window, GLFW_FOCUSED) || !checkMouseMoved()  ){
-            std::this_thread::sleep_for(std::chrono::milliseconds(66));//15 fps   
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000 / app_settings.fps_inactive));
         }else{
-            std::this_thread::sleep_for(std::chrono::milliseconds(33));//30 fps   
+           // if(app_settings.fps_active > 10){
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000 / app_settings.fps_active));
+            //}
+            //else{
+             //   std::this_thread::sleep_for(std::chrono::milliseconds(33));
+            //}
         }
 
 
@@ -170,9 +175,12 @@ int run(std::string userdata_dir,std::string playlists_dir){
         ImGui_ImplGlfw_NewFrame();
         if(app_state.load_font){
             ImGui::GetIO().Fonts->Clear();
-            ImGui::GetIO().Fonts->AddFontFromFileTTF(app_settings.font_path.c_str(),app_settings.font_size, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesJapanese());
+            std::cout << "loading Font: " << app_settings.font_path.c_str() << std::endl;
+            //ImGui::GetIO().Fonts->GetGlyphRangesJapanese()
+            ImGui::GetIO().Fonts->AddFontFromFileTTF(app_settings.font_path.c_str(),app_settings.font_size, nullptr);
             app_state.load_font = false;
             ImGui::GetIO().Fonts->Build();
+
             ImGui_ImplOpenGL3_DestroyFontsTexture();
             ImGui_ImplOpenGL3_CreateFontsTexture();
         }

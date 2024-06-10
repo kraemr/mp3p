@@ -18,7 +18,8 @@ namespace AppSettingsManager{
         data["playlist_directory_path"] = "";
         data["font_path"] = "";
         data["font_size"] = 12;
-
+        data["fps_active"] = 30;
+        data["fps_inactive"] = 15;
         std::string jsonStr = data.dump();
         std::ofstream outputFile(abs_settings_json_path);
 	    if (outputFile.is_open()) {
@@ -44,6 +45,8 @@ namespace AppSettingsManager{
             pAppSettings->userdata_directory_path = data["userdata_directory_path"];
             pAppSettings->font_path = data["font_path"];
             pAppSettings->font_size = data["font_size"];
+            pAppSettings->fps_active = data["fps_active"];
+            pAppSettings->fps_inactive = data["fps_inactive"];
 
         }
         catch (const json::exception& e){
@@ -67,6 +70,9 @@ namespace AppSettingsManager{
         data["caching"] = pAppSettings->caching;
         data["font_path"] = pAppSettings->font_path;
         data["font_size"] = pAppSettings->font_size;
+        data["fps_active"] = pAppSettings->fps_active;
+        data["fps_inactive"] = pAppSettings->fps_inactive;
+
 
         std::string jsonStr = data.dump();
         std::ofstream outputFile(abs_settings_json_path);

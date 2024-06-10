@@ -248,9 +248,15 @@ void renderSettingsWindow(ApplicationState& app_state,AppSettings& app_settings)
 
         ImGui::InputText("##loadFontPathInputText", (char *)app_settings.font_path.data(),512); 
         ImGui::InputFloat("##loadFontPixelSizeInputFloat", &app_settings.font_size); 
-
+        ImGui::SameLine();
         if(ImGui::Button("load##FONTLOADBTN")){
             loadFont(&app_state,&app_settings);
+        }
+
+        ImGui::InputInt("fps while window is focused: ##activeFPS", &app_settings.fps_active); 
+        ImGui::InputInt("fps while window is unfocused: ##inactiveFPS", &app_settings.fps_inactive); 
+        if(ImGui::Button("Save##SETTINGSSAVEBUTTON")){
+            int res=AppSettingsManager::saveChangedSettings(app_settings.userdata_directory_path + "settings.json", &app_settings);
         }
 
         ImGui::End();
@@ -302,30 +308,6 @@ void renderPlayer(ApplicationState& app_state,AppSettings& app_settings){
     }else{
         ImGui::Text("No Song Playing ...");
     }
-    
-    ImGui::SameLine();
-    if(ImGui::Button("settings")){
-        int res = Mp3Player::refreshAudioDevices();
-        app_state.show_settings = true;
-    }
-    ImGui::SameLine();
-    if(ImGui::Button("Exit")){
-        ImGui::End();
-        cleanup();
-        Mp3Player::cleanupMp3Player();
-        saveAllChangesToPlaylists();
-        int res;
-        res=AppStateManager::saveChangedState(app_settings.userdata_directory_path + "state.json",&app_state);
-        if(res < 0){
-            std::cout << "error couldnt save State (saveChangedState)";
-        }
-        res=AppSettingsManager::saveChangedSettings(app_settings.userdata_directory_path + "settings.json", &app_settings);
-        if(res < 0){
-            std::cout << "error couldnt save Settings (saveChangedSettings)";
-        }
-        exit(0);
-        return;
-    }
     ImGui::End();
 }
 
@@ -347,18 +329,22 @@ void renderDebug(ApplicationState& app_state,AppSettings& app_settings){
     }
     auto map =getCache();
     std::map<std::string, unsigned long long>::iterator it = map.begin();
-	ImGui::Text("CACHE: ");
-	// Iterating over the map using Iterator till map end.
+
+    ImGui::Text("fps: %d,fps_inactive %d",app_settings.fps_active,app_settings.fps_inactive);
+    float cache_size = sizeof(std::map<std::string,unsigned long long>);
 	while (it != map.end())
 	{
 		// Accessing the key
 		std::string key = it->first;
 		unsigned long long value = it->second;
+        cache_size += key.length() + sizeof(unsigned long long);
 		//std::cout << key << " :: " << value << std::endl;
 		// iterator incremented to point next item
 		it++;
-        ImGui::Text("%s :: %llu",key.c_str(),value);
+      //  ImGui::Text("%s :: %llu",key.c_str(),value);
 	}
+	ImGui::Text("CACHE-Size KB: %f",cache_size / 1000);
+
 
 
     ImGui::End(); 
@@ -470,6 +456,7 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
     }
     ImGui::Image((void*)(intptr_t)(currentPlaylist_image.texture), PlaylistImageSize);    
     std::string current_playlist_str=Mp3Player::getPlaylistName();
+    
     ImGui::SameLine();
     if(Mp3Player::currentPlaylist != nullptr){
         ImGui::Text("Current Playlist: %s \nDescription: %s",current_playlist_str.c_str(),Mp3Player::currentPlaylist->description.c_str());
@@ -477,9 +464,34 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
     if(ImGui::Button("Edit")){
         app_state.edit_playlist = true;
     }    
+    ImGui::SameLine();
     if(ImGui::Button("Shuffle")){
         Mp3Player::shufflePlaylist();
     }
+    ImGui::SameLine();
+    if(ImGui::Button("settings")){
+        int res = Mp3Player::refreshAudioDevices();
+        app_state.show_settings = true;
+    }
+    ImGui::SameLine();
+    if(ImGui::Button("Exit")){
+        ImGui::End();
+        cleanup();
+        Mp3Player::cleanupMp3Player();
+        saveAllChangesToPlaylists();
+        int res;
+        res=AppStateManager::saveChangedState(app_settings.userdata_directory_path + "state.json",&app_state);
+        if(res < 0){
+            std::cout << "error couldnt save State (saveChangedState)";
+        }
+        res=AppSettingsManager::saveChangedSettings(app_settings.userdata_directory_path + "settings.json", &app_settings);
+        if(res < 0){
+            std::cout << "error couldnt save Settings (saveChangedSettings)";
+        }
+        exit(0);
+        return;
+    }
+
     if(app_state.currentPlaylist != nullptr){
        // ImGui::Checkbox("Repeat",&app_state.currentPlaylist->shouldLoop);
     }
@@ -600,7 +612,7 @@ int initGui(){
         ImGui_ImplGlfw_InstallEmscriptenCanvasResizeCallback("#canvas");
     #endif
     ImGui_ImplOpenGL3_Init(glsl_version);
-    glewInit();
+   // glewInit();
     if(Mp3Player::currentPlaylist != nullptr){
         LoadTextureFromFile(Mp3Player::currentPlaylist->image_path.c_str(),&currentPlaylist_image);
     }

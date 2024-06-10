@@ -25,9 +25,9 @@ SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui
 SOURCES += $(IMGUI_DIR)/backends/imgui_impl_glfw.cpp $(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 UNAME_S := $(shell uname -s)
-LINUX_GL_LIBS = -lGL -lGLEW
+LINUX_GL_LIBS = -lGL 
 CXXFLAGS = -std=c++20 -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends
-CXXFLAGS +=  -Wall -Wformat -O0 -fno-char8_t
+CXXFLAGS +=  -Wall -Wformat -O2 -fno-char8_t
 LIBS =
 STATIC_LBIS = libglfw3_win32.a
 GLFW_INCLUDE = $(INCLUDE_DIR)/glfw/include

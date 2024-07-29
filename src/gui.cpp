@@ -1,4 +1,5 @@
 #include "../include/app.hpp"
+#include <GLFW/glfw3.h>
 #include <cstddef>
 #include <iterator>
 #include <string>
@@ -64,7 +65,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
 bool LoadTextureFromFile(const char* filename,struct stb_IMAGE* image)
 {
-    // Load from file
     int image_width = 0;
     int image_height = 0;
     unsigned char* image_data = stbi_load(filename, &image_width, &image_height, NULL, 4);
@@ -154,15 +154,29 @@ std::vector<std::string> stringSplit(std::string str,char split_on){
     std::string curr_str;
     for(char ch : str){
         if(ch == split_on){
-    vec.push_back(curr_str);
-    curr_str = "";
+            vec.push_back(curr_str);
+            curr_str = "";
 
-        }else curr_str += ch;
+        }
+        else curr_str += ch;
     }
     vec.push_back(curr_str);
     return vec;
 }
 
+void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (action == GLFW_PRESS)
+    {
+        switch(key){
+            case GLFW_KEY_RIGHT: Mp3Player::loadNextSong();break;
+            case GLFW_KEY_LEFT:  Mp3Player::loadPrevSong();break;
+            case GLFW_KEY_UP:    Mp3Player::adjustVolumeInSteps(false,0.1);break;
+            case GLFW_KEY_DOWN:  Mp3Player::adjustVolumeInSteps(true,0.1);break;
+
+        }
+    }   
+}
 
 static void glfw_exit_window_callback(GLFWwindow* window ){
     glfwSetWindowShouldClose(window, GL_TRUE);
@@ -245,7 +259,6 @@ void renderSettingsWindow(ApplicationState& app_state,AppSettings& app_settings)
                 }
             }
         }
-
         ImGui::InputText("##loadFontPathInputText", (char *)app_settings.font_path.data(),512); 
         ImGui::InputFloat("##loadFontPixelSizeInputFloat", &app_settings.font_size); 
         ImGui::SameLine();
@@ -618,6 +631,7 @@ int initGui(){
     }
     glfwSetDropCallback(window,GLFWDropCallback);
     glfwSetWindowCloseCallback(window, glfw_exit_window_callback);
+    glfwSetKeyCallback(window, glfw_key_callback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 //    loadFont("/usr/share/fonts/opentype/unifont/unifont.otf", 18);
 

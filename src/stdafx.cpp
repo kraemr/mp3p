@@ -1,4 +1,5 @@
 #include "../include/stdafx.hpp"
+
 std::vector<std::string> splitString(const std::string& input, const std::string& delimiter) {
     std::vector<std::string> result;
     std::size_t pos = 0;

@@ -3,7 +3,7 @@
 #include <iostream>
 #include "../include/appstate_and_settings.hpp"
 
-//Cutomize stuff is also saved in settings, since it would be kind of redundant to add another struct/namespace or whatever
+// could probybly just name this AppSettingsUtils
 namespace AppSettingsManager{
     using json = nlohmann::json;
     //loads settings.json
@@ -42,7 +42,6 @@ namespace AppSettingsManager{
             pAppSettings->device_name = data["device_name"];
             pAppSettings->should_recurse_subdirs = data["should_recurse_subdirs"];
             pAppSettings->debug = data["debug"];
-            //pAppSettings->caching = data["caching"];
             pAppSettings->userdata_directory_path = data["userdata_directory_path"];
             pAppSettings->font_path = data["font_path"];
             pAppSettings->font_size = data["font_size"];
@@ -50,8 +49,7 @@ namespace AppSettingsManager{
             pAppSettings->fps_inactive = data["fps_inactive"];
         }
         catch (const json::exception& e){
-            std::cerr << e.what() << std::endl;
-         //   std::cerr << "reloadAppSettings failed: " << abs_settings_json_path << std::endl;
+            std::cerr << "reloadSettings(): " << e.what() << std::endl;
             return -2;
         }
 
@@ -62,7 +60,6 @@ namespace AppSettingsManager{
         json data;
         data["playlist_directory_path"] = pAppSettings->playlist_directory_path;
         data["userdata_directory_path"] = pAppSettings->userdata_directory_path;
-
         data["deviceid"] = pAppSettings->deviceid;
         data["device_name"] = pAppSettings->device_name;
         data["should_recurse_subdirs"] = pAppSettings->should_recurse_subdirs;
@@ -72,8 +69,6 @@ namespace AppSettingsManager{
         data["font_size"] = pAppSettings->font_size;
         data["fps_active"] = pAppSettings->fps_active;
         data["fps_inactive"] = pAppSettings->fps_inactive;
-
-
         std::string jsonStr = data.dump();
         std::ofstream outputFile(abs_settings_json_path);
 	    if (outputFile.is_open()) {
@@ -84,10 +79,9 @@ namespace AppSettingsManager{
     }
 }
 
-    
+// could probybly just name this AppStateUtils
 namespace AppStateManager{
     using json = nlohmann::json;
-
     void resetDefaults(std::string abs_state_json_path){
         json data;
         data["show_customize"] = false;
@@ -119,7 +113,6 @@ namespace AppStateManager{
             pAppState->show_settings = data["show_settings"];
             pAppState->show_new_playlist = data["show_new_playlist"];
             pAppState->currentPlaylistName = data["current_playlist_name"];
-            //pAppState->currentPlaylistPath = data["current_playlist_path"];
             pAppState->volume = data["volume"];
         }
         catch (const json::exception& e){
@@ -134,7 +127,6 @@ namespace AppStateManager{
         data["show_customize"] = pAppState->show_customize;
         data["show_settings"] = pAppState->show_settings;
         data["show_new_playlist"] = pAppState->show_new_playlist;
-    //    data["current_song_path"] = pAppState->currentSong->filepath;
         data["current_playlist_name"] = pAppState->currentPlaylistName;
         data["volume"] = pAppState->volume;
         std::string jsonStr = data.dump();

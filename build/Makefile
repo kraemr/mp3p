@@ -18,8 +18,8 @@ EXE = mp3.out
 IMGUI_DIR = ../include/imgui
 INCLUDE_DIR = ../include
 SRC_DIR = ../src
-SOURCES =$(SRC_DIR)/main.cpp $(SRC_DIR)/mp3player.cpp $(SRC_DIR)/playlist.cpp $(SRC_DIR)/miniaudio.cpp $(SRC_DIR)/appstate_and_settings.cpp $(SRC_DIR)/caching.cpp $(SRC_DIR)/app.cpp $(SRC_DIR)/gui.cpp $(SRC_DIR)/stdafx.cpp
-
+SOURCES =  $(SRC_DIR)/main.cpp $(SRC_DIR)/mp3player.cpp $(SRC_DIR)/playlist.cpp $(SRC_DIR)/miniaudio.cpp $(SRC_DIR)/appstate_and_settings.cpp $(SRC_DIR)/caching.cpp $(SRC_DIR)/app.cpp $(SRC_DIR)/gui.cpp $(SRC_DIR)/stdafx.cpp
+SOURCES += $(SRC_DIR)/api.cpp $(SRC_DIR)/image.cpp
 SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
 SOURCES += $(IMGUI_DIR)/backends/imgui_impl_glfw.cpp $(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))

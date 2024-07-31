@@ -35,11 +35,11 @@ SOFTWARE.
 #include <sys/stat.h>
 using json = nlohmann::json;
 namespace fs = std::filesystem;
+
 struct PlaylistResult{
 	Playlist playlist;
 	int error;	
 };
-
 
 //this handles paths that contain $, which indicate an env variable
 std::string getPath(std::string path){
@@ -103,15 +103,13 @@ Playlist read_playlist_json(std::string filepath){
 		playlist.path = filepath;
 	    playlist.songs = playlist_songs;
 		playlist.shuffled = false;
+		
 		if(data["image_path"].is_null() && data["image_path"] == ""){
 			playlist.image_path = "";
 		}
 		else if(data.contains("image_path") && !data["image_path"].is_null()){
 			playlist.image_path = getPath(data["image_path"]);
 		//	std::cout << "playlist " << playlist.name <<  playlist.image_path << std::endl;
-		}
-		else{
-			//data["image_path"] = "";
 		}
 
 		if(data.contains("description")){
@@ -120,7 +118,7 @@ Playlist read_playlist_json(std::string filepath){
 		return playlist;
 	}
 	catch (const json::exception& e)
-    	{
+    {
 		std::cerr << "The playlist in which the error occurred: " << filepath << std::endl << std::endl;
  		std::cerr << e.what() << std::endl; 
 		Playlist playlist;
@@ -129,7 +127,34 @@ Playlist read_playlist_json(std::string filepath){
 		playlist.image_path = "";
 		playlist.songs = std::vector<Song>(0);
 		return playlist;
-    	}
+    }
+}
+
+std::string convert_playlist_to_json(Playlist* playlist){
+	try{
+		json data;
+		data["name"] = playlist->name;
+		data["path"] = playlist->path;
+		#ifdef CPPMP3_DEBUG
+			std::cout << "orig Path" << p.path << std::endl;
+		#endif
+		json songsJsonArr;
+		for (const Song& song : playlist->songs){
+			json songJson;
+			songJson["songname"] = song.songname;
+			songJson["path"] = song.filepath;
+			songsJsonArr.push_back(songJson);
+		}
+    	data["songs"] = songsJsonArr;
+		data["image_path"] = playlist->image_path;
+		data["description"] = playlist->description;
+		std::string jsonStr = data.dump();
+		return jsonStr;
+	}
+	catch (const json::exception& e){
+		std::cerr << "Error convert_playlist_to_json" << playlist->name << std::endl;
+		return "";
+	}
 }
 
 // This creates a json_file with the same name as
@@ -137,53 +162,13 @@ void save_changed_playlist(Playlist* playlist){
 	if(playlist == nullptr || playlist == NULL ){
 		return;
 	}
-	try{
-	json data;
-	data["name"] = playlist->name;
-	data["path"] = playlist->path;
-	#ifdef CPPMP3_DEBUG
-	std::cout << "orig Path" << p.path << std::endl;
-	#endif
-	json songsJsonArr;
-	for (const Song& song : playlist->songs){
-		json songJson;
-		songJson["songname"] = song.songname;
-		songJson["path"] = song.filepath;
-		songsJsonArr.push_back(songJson);
-	}
-    data["songs"] = songsJsonArr;
-
-	data["image_path"] = playlist->image_path;
-	
-	data["description"] = playlist->description;
-    
-	std::string jsonStr = data.dump();
+	std::string jsonStr = convert_playlist_to_json(playlist);
     std::ofstream outputFile(playlist->path);
 	if (outputFile.is_open()) {
         outputFile << jsonStr;
-        outputFile.close();
-    } 
-	}
-	catch (const json::exception& e){
-		std::cerr << "Error Saving Playlist " << playlist->name << std::endl;
-		return;
+    	outputFile.close();
 	}
 }
-
-// Use this if you load playlists from different locations
-void merge_playlists(std::vector<Playlist>& playlist1,std::vector<Playlist> playlist2){
-	return;
-}
-
-void print_songs(Playlist& playlist){
-	/*std::cout << STDAFX_YELLOW << playlist->name << ": " << std::endl;
-	for (struct Song song : playlist->songs){
-		std::cout << "songname: " << song.songname << "filepath: " << song.filepath << std::endl;
-	}
-	std::cout << STDAFX_RESET_COLOR <<std::endl;*/
-}
-
-
 
 std::vector<Playlist> read_playlists_dir(std::string path){
 	std::vector<Playlist> playlists;

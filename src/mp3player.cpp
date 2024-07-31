@@ -45,7 +45,6 @@ f32 volume = 1.0f; // starting relative volume
 u64 current_seconds=0;
 volatile bool playOnLoad=true;
 float volume_step = 0.05f; // This says how many percent the volume should go down for each call of 
-
 //#####################
 
 /*Constants*/

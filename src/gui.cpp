@@ -4,30 +4,23 @@
 #include <iterator>
 #include <string>
 #include <uchar.h>
-#ifndef STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
-#include "../include/stb_image.h"
 #include "../include/caching.hpp"
-#endif
+
 namespace Mp3Gui{
     GLFWwindow * window;
     ImGuiIO* io;
-
     int windowWidth=1280;
     int windowHeight=720;
-
-    stb_IMAGE playButton_img;
-    stb_IMAGE pauseButton_img;
-    stb_IMAGE prevButton_img;
-    stb_IMAGE exitButton_img;
-    stb_IMAGE skipButton_img;
-    stb_IMAGE settingsButton_img;
-    stb_IMAGE cutomizeButton_img;
-    stb_IMAGE currentPlaylist_image;
-    
+    Mp3PlayerImage::stb_IMAGE playButton_img;
+    Mp3PlayerImage::stb_IMAGE pauseButton_img;
+    Mp3PlayerImage::stb_IMAGE prevButton_img;
+    Mp3PlayerImage::stb_IMAGE exitButton_img;
+    Mp3PlayerImage::stb_IMAGE skipButton_img;
+    Mp3PlayerImage::stb_IMAGE settingsButton_img;
+    Mp3PlayerImage::stb_IMAGE cutomizeButton_img;
+    Mp3PlayerImage::stb_IMAGE currentPlaylist_image;
     ImFont* title_font;
     ImFont* text_font;
-
     ImVec2 playlistPos = {(float)0,(float)0};;
     ImVec2 playlistSize = {(float)windowWidth/6,(float)windowHeight};;
     ImVec2 playerPos = {(float)windowWidth,(float)windowHeight};
@@ -35,96 +28,29 @@ namespace Mp3Gui{
     ImVec2 SongsPos = {playlistSize.x,0};;
     ImVec2 SongsSize = {(float)windowWidth-playlistSize.x,(float)windowHeight};
     ImVec2 PlaylistImageSize = {(float)windowWidth/8,(float)windowWidth/8};
-    
     //This is the playlist getting created by new Playlist window
     Playlist created_playlist;
     static char name[256];
     static char description[4096];
-    static float image_ratio = 1;
 
+    inline void loadFont(ApplicationState* app_state,AppSettings* app_settings){
+        app_state->load_font = true;
+    }
 
-inline void loadFont(ApplicationState* app_state,AppSettings* app_settings){
-    app_state->load_font = true;
-}
-
-
-void updatePositionsAndSizes(){
-    playlistPos = {(float)0,(float)0};;
-    playlistSize = {(float)io->DisplaySize.x/6,io->DisplaySize.y};;
-    playerSize = {(float)io->DisplaySize.x - playlistSize.x,((float)io->DisplaySize.y) / (float)11.5};
-    playerPos = {(float)playlistPos.x + playlistSize.x,(float)io->DisplaySize.y-playerSize.y};
-    SongsPos = {playlistSize.x,0};;
-    SongsSize = {(float)io->DisplaySize.x-playlistSize.x,(float)io->DisplaySize.y-playerSize.y};
-    PlaylistImageSize = {(float)io->DisplaySize.x /8,((float)io->DisplaySize.x /8) * image_ratio} ;
-}
+    void updatePositionsAndSizes(){
+        playlistPos = {(float)0,(float)0};;
+        playlistSize = {(float)io->DisplaySize.x/6,io->DisplaySize.y};;
+        playerSize = {(float)io->DisplaySize.x - playlistSize.x,((float)io->DisplaySize.y) / (float)11.5};
+        playerPos = {(float)playlistPos.x + playlistSize.x,(float)io->DisplaySize.y-playerSize.y};
+        SongsPos = {playlistSize.x,0};;
+        SongsSize = {(float)io->DisplaySize.x-playlistSize.x,(float)io->DisplaySize.y-playerSize.y};
+        PlaylistImageSize = {(float)io->DisplaySize.x /8,((float)io->DisplaySize.x /8) * Mp3PlayerImage::image_ratio} ;
+    }
     
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
-    io->DisplaySize = ImVec2(width, height);
-}
-
-bool LoadTextureFromFile(const char* filename,struct stb_IMAGE* image)
-{
-    int image_width = 0;
-    int image_height = 0;
-    unsigned char* image_data = stbi_load(filename, &image_width, &image_height, NULL, 4);
-    if (image_data == NULL)
-        return false;
-    // Create a OpenGL texture identifier
-    GLuint image_texture;
-    glGenTextures(1, &image_texture);
-    glBindTexture(GL_TEXTURE_2D, image_texture);
-    // Setup filtering parameters for display
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
-    // Upload pixels into texture
-#if defined(GL_UNPACK_ROW_LENGTH) && !defined(__EMSCRIPTEN__)
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-#endif
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
-    stbi_image_free(image_data);
-    image->texture = image_texture;
-    image->w = image_width;
-    image->h = image_height;
-    image_ratio = float(image->h) / float(image->w);
-    std::cout << "RATIO: "<< image_ratio << " W:" << image_width << " H:" << image_height  << std::endl;
-    return true;
-}
-
-bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* out_width, int* out_height)
-{
-    // Load from file
-    int image_width = 0;
-    int image_height = 0;
-    unsigned char* image_data = stbi_load(filename, &image_width, &image_height, NULL, 4);
-    if (image_data == NULL)
-        return false;
-    // Create a OpenGL texture identifier
-    GLuint image_texture;
-    glGenTextures(1, &image_texture);
-    glBindTexture(GL_TEXTURE_2D, image_texture);
-    // Setup filtering parameters for display
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
-    // Upload pixels into texture
-#if defined(GL_UNPACK_ROW_LENGTH) && !defined(__EMSCRIPTEN__)
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-#endif
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
-    stbi_image_free(image_data);
-
-    *out_texture = image_texture;
-    *out_width = image_width;
-    *out_height = image_height;
-
-    return true;
-}
-
-
+    void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+        glViewport(0, 0, width, height);
+        io->DisplaySize = ImVec2(width, height);
+    }
 
 void saveAllChangesToPlaylists(){
     for(Playlist playlist : Mp3Player::playlistsVec){
@@ -164,19 +90,22 @@ std::vector<std::string> stringSplit(std::string str,char split_on){
     return vec;
 }
 
-void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (action == GLFW_PRESS)
-    {
-        switch(key){
-            case GLFW_KEY_RIGHT: Mp3Player::loadNextSong();break;
-            case GLFW_KEY_LEFT:  Mp3Player::loadPrevSong();break;
-            case GLFW_KEY_UP:    Mp3Player::adjustVolumeInSteps(false,0.1);break;
-            case GLFW_KEY_DOWN:  Mp3Player::adjustVolumeInSteps(true,0.1);break;
 
-        }
-    }   
-}
+static void imgui_keyboard_callback()
+{
+    long int key_id = ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_RightArrow)? ImGuiKey_RightArrow : 0;
+    key_id = ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_LeftArrow) ? ImGuiKey_LeftArrow : key_id;
+    key_id = ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_UpArrow) ? ImGuiKey_UpArrow : key_id;
+    key_id = ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_DownArrow) ? ImGuiKey_DownArrow : key_id;
+    switch(key_id){
+        case ImGuiKey_RightArrow: Mp3Player::loadNextSong();break;
+        case ImGuiKey_LeftArrow:  Mp3Player::loadPrevSong();break;
+        case ImGuiKey_UpArrow:    Mp3Player::adjustVolumeInSteps(false,0.1);break;
+        case ImGuiKey_DownArrow:  Mp3Player::adjustVolumeInSteps(true,0.1);break;
+        default:return;break;
+    }
+}   
+
 
 static void glfw_exit_window_callback(GLFWwindow* window ){
     glfwSetWindowShouldClose(window, GL_TRUE);
@@ -226,8 +155,7 @@ void HandleDropEvent(int count, const char** paths) {
                 Mp3Player::currentSong = &Mp3Player::currentPlaylist->songs[Mp3Player::currentSongId];
                 save_changed_playlist(Mp3Player::currentPlaylist);
         }
-    }
-   
+    }   
 }
 
 void GLFWDropCallback(GLFWwindow* window, int count, const char** paths) {
@@ -241,12 +169,9 @@ static void glfw_error_callback(int error, const char* description){
 void renderSettingsWindow(ApplicationState& app_state,AppSettings& app_settings){
     if(app_state.show_settings){
         ImGui::Begin("Settings",&app_state.show_settings);
-        ImGui::SetWindowSize({io->DisplaySize.x - (io->DisplaySize.x/4)
-        ,(float)(io->DisplaySize.y-(io->DisplaySize.y/12))},0);
-
+        ImGui::SetWindowSize({io->DisplaySize.x - (io->DisplaySize.x/4),(float)(io->DisplaySize.y-(io->DisplaySize.y/12))},0);
         ImGui::Checkbox("Debug",&app_settings.debug);
         ImGui::Checkbox("Cache Song Duration in Memory",&app_settings.caching);
-    
         std::vector<std::string> devices = Mp3Player::getDeviceNames();
         for(long unsigned int i = 0; i < devices.size();i++){
             if(ImGui::Button(devices[i].c_str())){
@@ -265,27 +190,24 @@ void renderSettingsWindow(ApplicationState& app_state,AppSettings& app_settings)
         if(ImGui::Button("load##FONTLOADBTN")){
             loadFont(&app_state,&app_settings);
         }
-
         ImGui::InputInt("fps while window is focused: ##activeFPS", &app_settings.fps_active); 
         ImGui::InputInt("fps while window is unfocused: ##inactiveFPS", &app_settings.fps_inactive); 
         if(ImGui::Button("Save##SETTINGSSAVEBUTTON")){
             int res=AppSettingsManager::saveChangedSettings(app_settings.userdata_directory_path + "settings.json", &app_settings);
         }
-
         ImGui::End();
     }
 }
 
 void renderCustomizeWindow(ApplicationState& app_state,AppSettings& app_settings){
-        if(app_state.show_customize){
+    if(app_state.show_customize){
 	    ImGui::Begin("Customization",&app_state.show_customize);
 	    ImGui::SetWindowSize({(float)windowWidth-float(windowWidth/4),(float)(windowHeight-(windowHeight/12))},0);
 	    ImGui::End();
-        }
+    }
 }
 
 void renderPlayer(ApplicationState& app_state,AppSettings& app_settings){
-    
     ImGui::SetNextWindowSize(playerSize,0);
     ImGui::SetNextWindowPos(playerPos,0);
     ImGui::Begin("Player",nullptr,ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoNav );
@@ -317,11 +239,11 @@ void renderPlayer(ApplicationState& app_state,AppSettings& app_settings){
     } 
     ImGui::SameLine();
     if(Mp3Player::currentSong != nullptr && !Mp3Player::currentSong->songname.empty()){
-        ImGui::Text("%s",Mp3Player::currentSong->songname.c_str()); 
+        (void)ImGui::Text("%s",Mp3Player::currentSong->songname.c_str()); 
     }else{
-        ImGui::Text("No Song Playing ...");
+        (void)ImGui::Text("No Song Playing ...");
     }
-    ImGui::End();
+    (void)ImGui::End();
 }
 
 void renderDebug(ApplicationState& app_state,AppSettings& app_settings){
@@ -340,9 +262,8 @@ void renderDebug(ApplicationState& app_state,AppSettings& app_settings){
     for(unsigned int i = 0; i < Mp3Player::playbackDeviceCount;i++ ){
         ImGui::Text("%s %llu",Mp3Player::pPlaybackDeviceInfos[i].name,(long long unsigned int) &Mp3Player::devices[i]);
     }
-    auto map =getCache();
+    auto map = getCache();
     std::map<std::string, unsigned long long>::iterator it = map.begin();
-
     ImGui::Text("fps: %d,fps_inactive %d",app_settings.fps_active,app_settings.fps_inactive);
     float cache_size = sizeof(std::map<std::string,unsigned long long>);
 	while (it != map.end())
@@ -357,9 +278,6 @@ void renderDebug(ApplicationState& app_state,AppSettings& app_settings){
       //  ImGui::Text("%s :: %llu",key.c_str(),value);
 	}
 	ImGui::Text("CACHE-Size KB: %f",cache_size / 1000);
-
-
-
     ImGui::End(); 
 }
 
@@ -367,7 +285,6 @@ void renderPlaylists(ApplicationState& app_state,AppSettings& app_settings){
     ImGui::SetNextWindowSize(playlistSize,0);
     ImGui::SetNextWindowPos(playlistPos);
     ImGui::Begin("Playlists");
-
     if(ImGui::Button("[+] New Playlist")){
         app_state.show_new_playlist = true;
     }
@@ -381,16 +298,12 @@ void renderPlaylists(ApplicationState& app_state,AppSettings& app_settings){
         }else{
             pstr = Mp3Player::playlistsVec[i].name  + "##PButton" + std::to_string(i);
         }
-        
         if( ImGui::Button(pstr.c_str() ) && app_state.edit_playlist == false){
             Mp3Player::loadDifferentPlaylist(i);
             LoadTextureFromFile(Mp3Player::currentPlaylist->image_path.c_str(),&currentPlaylist_image);//Eh this should work
             Mp3Player::decodeSongsPlaylist(Mp3Player::currentPlaylist);
-
         }
-
         ImGui::SameLine();
-        
         if(ImGui::Button(DbuttonStr.c_str())&& app_state.edit_playlist == false){
            Mp3Player::removePlaylist(i); 
            AppStateManager::saveChangedState(app_settings.userdata_directory_path + "state.json",&app_state);
@@ -398,7 +311,6 @@ void renderPlaylists(ApplicationState& app_state,AppSettings& app_settings){
     }
     ImGui::End();
 }
-
 
 void ClickableTableRow(const char* label, bool* selected,short* mouse_click) {
     if (ImGui::Selectable(label, *selected)) {
@@ -412,7 +324,6 @@ void ClickableTableRow(const char* label, bool* selected,short* mouse_click) {
     }else{
         (*mouse_click) = 0;
     }
-    
 }
 
 void renderEditPlaylist(ApplicationState& app_state,AppSettings& app_settings){
@@ -428,7 +339,6 @@ void renderEditPlaylist(ApplicationState& app_state,AppSettings& app_settings){
         }
         ImGui::InputText("Playlist Name:",Mp3Player::currentPlaylist->name.data(),256);
         ImGui::InputText("Playlist Description:",Mp3Player::currentPlaylist->description.data(),4096);
-        
         ImGui::Text("Drag and Drop image here to set it as the playlist image");
         ImGui::Text("Playlist Image: ");
         ImGui::Image((void*)(intptr_t)(currentPlaylist_image.texture), PlaylistImageSize);    
@@ -457,19 +367,17 @@ void renderSongAddColumns(int i){
     ImGui::NextColumn();
 }
 
-// Simplify song select by removing the PlAY Button
 void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
     int res=0;
+    imgui_keyboard_callback(); // could call this outside of renderSongSelect ...
     ImGui::SetNextWindowSize(SongsSize,0);
     ImGui::SetNextWindowPos(SongsPos);
-    // if resized then SetWindowSize and Posiion
     ImGui::Begin("Song Select");
     if((currentPlaylist_image.texture) == 0 && Mp3Player::currentPlaylist != nullptr){
         LoadTextureFromFile(Mp3Player::currentPlaylist->image_path.c_str(),&currentPlaylist_image);
     }
     ImGui::Image((void*)(intptr_t)(currentPlaylist_image.texture), PlaylistImageSize);    
     std::string current_playlist_str=Mp3Player::getPlaylistName();
-    
     ImGui::SameLine();
     if(Mp3Player::currentPlaylist != nullptr){
         ImGui::Text("Current Playlist: %s \nDescription: %s",current_playlist_str.c_str(),Mp3Player::currentPlaylist->description.c_str());
@@ -504,7 +412,6 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
         exit(0);
         return;
     }
-
     if(app_state.currentPlaylist != nullptr){
        // ImGui::Checkbox("Repeat",&app_state.currentPlaylist->shouldLoop);
     }
@@ -545,8 +452,7 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
     ImGui::End();
 }
 
-char playlistTempBuf[256];
-// possible buffer overflow IF ImGui::InputText has a logic flaw letting users write more than 256 bytes
+char playlistTempBuf[256]; // possible buffer overflow IF ImGui::InputText has a logic flaw letting users write more than 256 bytes
 void renderNewPlaylist(ApplicationState& app_state,AppSettings& app_settings){
     if(app_state.show_new_playlist){
         ImGui::SetNextWindowBgAlpha(1.00f); // Transparent background
@@ -631,10 +537,9 @@ int initGui(){
     }
     glfwSetDropCallback(window,GLFWDropCallback);
     glfwSetWindowCloseCallback(window, glfw_exit_window_callback);
-    glfwSetKeyCallback(window, glfw_key_callback);
+    //glfwSetKeyCallback(window, glfw_key_callback);// This overwrites imgui keycallback... TODO:execute imgui callback inside there
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 //    loadFont("/usr/share/fonts/opentype/unifont/unifont.otf", 18);
-
     return 0;
 }
 }

@@ -18,8 +18,8 @@ int setupMp3Player(){
             Mp3Player::decodeSongsPlaylist(Mp3Player::currentPlaylist);
             break; // break out of loop
         }
-        }
-        Mp3Player::decodeSongsPlaylist(Mp3Player::currentPlaylist);
+    }
+    Mp3Player::decodeSongsPlaylist(Mp3Player::currentPlaylist);
     return 0;
 }
 
@@ -33,39 +33,27 @@ void setEnemyMouseStyle(){
     style.Colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f); // most of the text
     style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.00f, 0.40f, 0.41f, 1.00f);
     style.Colors[ImGuiCol_WindowBg] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
-
     style.Colors[ImGuiCol_Border] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f); // window border
     style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-
     style.Colors[ImGuiCol_FrameBg] = ImVec4(0.44f, 0.80f, 0.80f, 0.18f);
-
     style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.44f, 0.80f, 0.80f, 0.27f);
     style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.44f, 0.81f, 0.86f, 0.66f);
-
     style.Colors[ImGuiCol_TitleBg] = ImVec4(0.21f, 0.21f, 0.21f, 0.73f);
     style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.54f);
-
     style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.00f, 1.00f, 1.00f, 0.27f);
     style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.20f);
-
     style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.22f, 0.29f, 0.30f, 0.71f);
     style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.00f, 1.00f, 1.00f, 0.44f);
-
     style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.00f, 1.00f, 1.00f, 0.74f);
     style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.00f, 1.00f, 1.00f, 1.00f);
-
     style.Colors[ImGuiCol_CheckMark] = ImVec4(0.00f, 1.00f, 1.00f, 0.68f);
     style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.00f, 1.00f, 1.00f, 0.36f);
-
     style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.00f, 1.00f, 1.00f, 0.76f);
     style.Colors[ImGuiCol_Button] = ImVec4(0.00f, 0.65f, 0.65f, 0.46f);
-
     style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.01f, 1.00f, 1.00f, 0.43f);
     style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.00f, 1.00f, 1.00f, 0.62f);
-
     style.Colors[ImGuiCol_Header] = ImVec4(0.00f, 1.00f, 1.00f, 0.33f);
     style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.00f, 1.00f, 1.00f, 0.42f);
-
     style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.00f, 1.00f, 1.00f, 0.54f);
     style.Colors[ImGuiCol_ResizeGrip] = ImVec4(0.00f, 1.00f, 1.00f, 0.54f);
     style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.00f, 1.00f, 1.00f, 0.74f);
@@ -106,86 +94,55 @@ inline bool checkMouseMoved(){
 
 int run(std::string userdata_dir,std::string playlists_dir){
     app_settings.userdata_directory_path = userdata_dir;
-    app_settings.playlist_directory_path = playlists_dir;
+    app_settings.playlist_directory_path = playlists_dir;    
     Mp3Gui::initGui();
-
     std::cout << app_settings.userdata_directory_path << std::endl;
     int ret = AppSettingsManager::reloadSettings(userdata_dir+"settings.json",&app_settings);
+    
     if(ret == -2){
         std::cerr << "reloadSettings Failed ?" << std::endl;
         ret = AppSettingsManager::reloadSettings(userdata_dir+"settings.json",&app_settings);
     }
-
+    
     const std::filesystem::path p{app_settings.font_path.c_str()};
+    
     if(fileExists(p)){
         ImGui::GetIO().Fonts->AddFontFromFileTTF(app_settings.font_path.c_str(),app_settings.font_size, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesJapanese());
     }
     
-    // STATE
-    ret = AppStateManager::reloadState(userdata_dir+"state.json",&app_state);
+    ret = AppStateManager::reloadState(userdata_dir  + "state.json",&app_state);
     if(ret == -2){ // Then state.json didnt exist, after the call it was created so reload again
-        ret = AppStateManager::reloadState(userdata_dir+"state.json",&app_state);
-    }
-       
+        ret = AppStateManager::reloadState(userdata_dir  + "state.json",&app_state);
+    }  
     ret = (int)setupMp3Player();
     ret = Mp3Player::changeAudioDevice(app_settings.device_name);
     if(ret != 0){
-        std::cout << "couldnt use audio device: " << app_settings.device_name<<std::endl; 
+        std::cout << "couldnt use audio device: " << app_settings.device_name << std::endl; 
         Mp3Player::fallbackAudioDevice();
     }
     Mp3Player::setVolume(app_state.volume);
-    std::cout << "change Audio: "<<ret << std::endl;    
-
-    loadTheme("theme.json");
     ImVec4 clear_color = ImVec4(0, 0, 0, 0.1f);
-    
     loadTheme("theme.json");
     while (!glfwWindowShouldClose(Mp3Gui::window))
     {
-        // if no input is given this reduces the cpu usage in release down to 0.6 - 1.3 with input coming in and music ~4%
-        // cpu usage correlates HEAVILY with fps
-        // 60 fps causes 8% cpu usage without music playing -> TODO let the user pick his poison with settings ... 
-        // I dont really like the behaviour of glfwWaitEventsTimeout since it WAITS for timeout till it renders ANYTHING
-        // AND glfwWaitEvents only renders when any kind of user input is coming in
-        // A workaround would be to set ms_to_sleep:
-        // std::this_thread::sleep_for(std::chrono::milliseconds(ms_to_sleep)); 
-        /*
-
-        if user hasnt moved mouse or OS Window lost focus, then increase ms_to_sleep
-        This could be done gradually or hardcoded.
-        hardcoded is probably better.
-        A sensible default probably would be 15 fps
-        Make that available as a setting to the user, 
-        if the user wanted to he could set fps to 1 or even not render anything AT ALL if he so chooses
-        */
         glfwPollEvents();
-        // Lets keep it at that for now TODO: Custom FPS for inactive and active 
         if(!glfwGetWindowAttrib(Mp3Gui::window, GLFW_FOCUSED) || !checkMouseMoved()  ){
             std::this_thread::sleep_for(std::chrono::milliseconds(1000 / app_settings.fps_inactive));
         }else{
-           // if(app_settings.fps_active > 10){
             std::this_thread::sleep_for(std::chrono::milliseconds(1000 / app_settings.fps_active));
-            //}
-            //else{
-             //   std::this_thread::sleep_for(std::chrono::milliseconds(33));
-            //}
         }
-
-
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
+        //setting app_state load_font will trigger a reload of the font
         if(app_state.load_font){
             ImGui::GetIO().Fonts->Clear();
             std::cout << "loading Font: " << app_settings.font_path.c_str() << std::endl;
-            //ImGui::GetIO().Fonts->GetGlyphRangesJapanese()
             ImGui::GetIO().Fonts->AddFontFromFileTTF(app_settings.font_path.c_str(),app_settings.font_size, nullptr);
             app_state.load_font = false;
             ImGui::GetIO().Fonts->Build();
-
             ImGui_ImplOpenGL3_DestroyFontsTexture();
             ImGui_ImplOpenGL3_CreateFontsTexture();
         }
-
         ImGui::NewFrame();
         Mp3Gui::updatePositionsAndSizes();
         Mp3Gui::renderSettingsWindow(app_state,app_settings);
@@ -195,7 +152,6 @@ int run(std::string userdata_dir,std::string playlists_dir){
         Mp3Gui::renderPlayer(app_state,app_settings);
         Mp3Gui::renderNewPlaylist(app_state,app_settings);
         Mp3Gui::renderEditPlaylist(app_state,app_settings);
-
         if(app_settings.debug){
             Mp3Gui::renderDebug(app_state,app_settings);
         }

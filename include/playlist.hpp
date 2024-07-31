@@ -6,6 +6,7 @@ struct Song {
         std::string filepath;
 		unsigned long long duration;
 };
+
 struct Playlist {
 	std::string name; // name of playlist (is used to identify --> must be unique)
 	std::string path; // This actually has the absolute path to the actual file

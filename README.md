@@ -2,7 +2,7 @@
 A Simple mp3-player written in C++ with basic json playlists and configuration.
 
 # Building and Setup
-Install make on your system
+Make sure to Install make on your system
 ```bash
 git clone --recurse-submodules https://github.com/kraemr/mp3p
 cd mp3p
@@ -17,14 +17,12 @@ export CPPMP3_PLAYLISTS="Your/Custom/Path"
 ```
 
 ## Windows
-Set the values in the registry.
+Set the values in the registry OR on startup
 Here is a guide: <br>
 https://phoenixnap.com/kb/windows-set-environment-variable
 
-
-
 ## How to add music to a playlist?
-Just drag and drop mp3 or wav files into the window with an empty playlist open.
+Just drag and drop mp3 or wav files into the window with a playlist open.
 
 ## How to add an image to a new playlist?
 When you have the new playlist window open, then just drag and drop your image.
@@ -44,23 +42,33 @@ Press the edit button or edit the json file directly
 
 
 ## settings.json
-the gui mp3player takes this file to configure itself.
+the mp3player takes this file to configure itself.
 You are able to change the settings in the file or in the gui.
+
 playlist_dirs and music_dirs take absolute paths and paths containing env values.
 So something like "music_dirs":["$HOME/Music"] would lead to /home/user/Music on linux.
-```json
-{
-    "playlist_dirs":[
 
-    ],
-    "music_dirs":[
+## migrating to new pc
+its recommended to have all your music in a root directory with subdirectories.
+Like so
 
-    ],
-    "nanodelay":10000000,
-    "fps":60,
-    "initial-screen-size-x":800,
-    "initial-screen-size-y":450,
-    "start-maximized":true,
-    "start-fullscreen":false
-}
 ```
+-Music
+--Metal
+---Metallica
+----Song1
+----Song2
+--Pop
+--- ...
+--Random
+...
+```
+
+To change absolute paths in a playlist.json to migrate it you can use the convert.py script like so:
+```
+
+```
+
+
+
+

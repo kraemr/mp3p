@@ -415,6 +415,7 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
     if(app_state.currentPlaylist != nullptr){
        // ImGui::Checkbox("Repeat",&app_state.currentPlaylist->shouldLoop);
     }
+    ImGui::BeginChild("child_2", {0, 0}, false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::Columns(2, "##songselectColumns", false);
     ImGui::Text("Song / Artist");
     ImGui::NextColumn();
@@ -426,7 +427,7 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
         for(long unsigned int i = 0; i < Mp3Player::currentPlaylist->songs.size();i++){
             std::string PbuttonStr="##PButton";//## Gets ignored but this enables us to have an internal id
             PbuttonStr +=std::to_string(i);
-	        row_clicked = false;
+	    row_clicked = false;
             ClickableTableRow(PbuttonStr.c_str(),&row_clicked,&mouse_click);            
             ImGui::SameLine();            
             if( mouse_click == 1 && row_clicked){
@@ -447,8 +448,8 @@ void renderSongSelect(ApplicationState& app_state,AppSettings& app_settings){
                 renderSongAddColumns(i);
             }
         }
-        
     }
+    ImGui::EndChild();
     ImGui::End();
 }
 

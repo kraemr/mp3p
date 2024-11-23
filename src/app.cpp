@@ -23,7 +23,7 @@ int setupMp3Player(){
     return 0;
 }
 
-void setEnemyMouseStyle(){
+void setStyle(){
     ImGuiStyle& style = ImGui::GetStyle();
     style.Alpha = 1.0;
     style.WindowRounding = 3;
@@ -82,7 +82,7 @@ int loadTheme(std::string path){
     LoadTextureFromFile("",&cutomizeButton_img);
     */
     ImGui::StyleColorsClassic();
-    setEnemyMouseStyle();
+    setStyle();
     return 0;
 }
 

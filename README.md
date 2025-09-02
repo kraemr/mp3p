@@ -1,5 +1,5 @@
-# Cppmp3
-A Simple mp3-player written in C++ with basic json playlists and configuration.
+# mp3p
+An mp3-player written in C++ with basic json playlists and configuration.
 
 # Building and Setup
 Make sure to Install make on your system
